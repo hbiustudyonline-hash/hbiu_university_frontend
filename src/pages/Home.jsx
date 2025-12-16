@@ -323,7 +323,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {courses.map((course, index) => (
+              {courses.map((course) => (
                 <Card key={course.id} className="h-full overflow-hidden hover:shadow-xl transition-all duration-300 border-none shadow-lg group">
                   <CardHeader className="p-0">
                     <div className={`h-40 bg-gradient-to-br ${

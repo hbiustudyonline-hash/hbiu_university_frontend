@@ -1,5 +1,7 @@
 // Node.js Express backend API client
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.PROD 
+  ? 'https://hbiuuniversitybackendnode-production.up.railway.app/api'
+  : 'http://localhost:3001/api';
 
 // Temporary mock mode for testing (set to false when backend is running)
 const MOCK_MODE = false;
