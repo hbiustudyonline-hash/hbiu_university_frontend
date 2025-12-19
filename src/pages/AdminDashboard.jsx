@@ -1,4 +1,5 @@
 import { useState } from "react";
+import AppLayout from "@/components/AppLayout";
 import {
   Users,
   BookOpen,
@@ -36,8 +37,9 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <AppLayout>
+      <div className="p-4 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8 md:p-12 shadow-2xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl -mr-32 -mt-32" />
@@ -273,7 +275,8 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+        </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }

@@ -1,12 +1,13 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
+import PropTypes from 'prop-types';
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      window.location.href = '/Home';
+      window.location.href = '/';
     }
   }, [isAuthenticated, isLoading]);
 
@@ -26,13 +27,17 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600">Access Denied</h1>
-          <p>You don't have permission to access this page.</p>
+          <p>You don&apos;t have permission to access this page.</p>
         </div>
       </div>
     );
   }
-
   return children;
+};
+
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+  allowedRoles: PropTypes.arrayOf(PropTypes.string)
 };
 
 export default ProtectedRoute;

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
+import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -14,7 +16,7 @@ import {
   Calendar,
   Bell,
   Edit,
-  Award // Added Award icon
+  Award
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -24,15 +26,11 @@ import LecturerGrades from "../components/lecturer/LecturerGrades";
 import LecturerSubmissions from "../components/lecturer/LecturerSubmissions";
 import LecturerLiveClasses from "../components/lecturer/LecturerLiveClasses";
 import LecturerStats from "../components/lecturer/LecturerStats";
-import DegreeManagement from "../components/degree/DegreeManagement"; // Added DegreeManagement import
+import DegreeManagement from "../components/degree/DegreeManagement";
 
 export default function LecturerDashboard() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
 
   // Admin sees ALL courses, lecturers see only their own
   // This query now fetches all courses if the user is loaded.
@@ -81,8 +79,9 @@ export default function LecturerDashboard() {
   const totalStudents = myEnrollments.filter(e => e.status === 'active').length;
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <AppLayout>
+      <div className="p-4 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-8 md:p-12 shadow-2xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32" />
@@ -191,7 +190,8 @@ export default function LecturerDashboard() {
             <DegreeManagement />
           </TabsContent>
         </Tabs>
+        </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }

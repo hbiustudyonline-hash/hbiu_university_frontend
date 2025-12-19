@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -6,13 +6,14 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import LoginModal from "@/components/LoginModal";
 import { 
   GraduationCap, 
   BookOpen,
   Users,
   Video,
   Award,
-  Calendar,
   CheckCircle,
   ArrowRight,
   Play,
@@ -22,19 +23,14 @@ import {
   TrendingUp,
   Zap,
   Shield,
-  MessageSquare
+  MessageSquare,
+  LogOut,
+  User
 } from "lucide-react";
 
 export default function Home() {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    base44.auth.me()
-      .then(setUser)
-      .catch(() => {})
-      .finally(() => setIsLoading(false));
-  }, []);
+  const { user, isAuthenticated, logout } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const { data: courses } = useQuery({
     queryKey: ['featured-courses'],
@@ -43,22 +39,33 @@ export default function Home() {
   });
 
   const handleLogin = () => {
-    base44.auth.redirectToLogin(createPageUrl("Home"));
+    setShowLoginModal(true);
   };
 
   const handleLogout = () => {
-    base44.auth.logout(createPageUrl("/"));
+    logout();
   };
 
   const handleGetStarted = () => {
-    if (user) {
-      if (user.role === 'admin') {
-        window.location.href = createPageUrl("LecturerDashboard");
-      } else {
-        window.location.href = createPageUrl("Dashboard");
-      }
+    if (isAuthenticated && user) {
+      const redirectPath = getRoleBasedRedirect(user.role);
+      window.location.href = redirectPath;
     } else {
       handleLogin();
+    }
+  };
+
+  const getRoleBasedRedirect = (role) => {
+    switch (role) {
+      case 'admin':
+        return '/admin-dashboard';
+      case 'lecturer':
+        return '/lecturer-dashboard';
+      case 'college_admin':
+        return '/college-admin-dashboard';
+      case 'student':
+      default:
+        return '/student-dashboard';
     }
   };
 
@@ -116,14 +123,6 @@ export default function Home() {
     'PhD': 'bg-pink-100 text-pink-700'
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Navigation */}
@@ -140,23 +139,34 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              {user ? (
+              {isAuthenticated && user ? (
                 <>
-                  <Link to={createPageUrl(user.role === 'admin' ? "LecturerDashboard" : "Dashboard")}>
-                    <Button variant="outline">
-                      Go to Dashboard
-                    </Button>
-                  </Link>
-                  <Button onClick={handleLogout}>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <User className="w-4 h-4" />
+                    <span>Welcome, {user.firstName || user.full_name || 'User'}</span>
+                  </div>
+                  <Button 
+                    variant="outline"
+                    onClick={handleGetStarted}
+                  >
+                    Go to Dashboard
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
                     Logout
                   </Button>
                 </>
               ) : (
                 <>
-                  <Link to={createPageUrl("Courses")}>
-                    <Button variant="ghost">Browse Courses</Button>
-                  </Link>
-                  <Button onClick={handleLogin} className="bg-gradient-to-r from-blue-600 to-indigo-600">
+                  <Button variant="ghost">Browse Courses</Button>
+                  <Button 
+                    onClick={handleLogin} 
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600"
+                  >
                     Login / Sign Up
                   </Button>
                 </>
@@ -194,10 +204,10 @@ export default function Home() {
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 text-lg px-8 py-6 shadow-xl hover:shadow-2xl transition-all"
                   onClick={handleGetStarted}
                 >
-                  {user ? 'Go to Dashboard' : 'Get Started Free'}
+                  {isAuthenticated && user ? 'Go to Dashboard' : 'Get Started Free'}
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
-                {!user && (
+                {!(isAuthenticated && user) && (
                   <Button 
                     size="lg" 
                     variant="outline" 
@@ -499,6 +509,12 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={showLoginModal} 
+        onClose={() => setShowLoginModal(false)} 
+      />
     </div>
   );
 }

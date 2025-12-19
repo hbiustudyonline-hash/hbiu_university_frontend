@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
+import AppLayout from "@/components/AppLayout";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,13 +30,9 @@ const DEFAULT_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object
 
 export default function CollegeAdminDashboard() {
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const collegeId = searchParams.get('id');
   const [activeTab, setActiveTab] = useState('overview');
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
 
   const { data: college, isLoading: collegeLoading } = useQuery({
     queryKey: ['college', collegeId],
@@ -118,8 +116,9 @@ export default function CollegeAdminDashboard() {
   const logoUrl = college.logo || DEFAULT_LOGO;
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <AppLayout>
+      <div className="p-4 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-8 md:p-12 shadow-2xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
@@ -245,7 +244,8 @@ export default function CollegeAdminDashboard() {
             <CollegeDegreesTab college={college} degrees={collegeDegrees} />
           </TabsContent>
         </Tabs>
+        </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }

@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import AppLayout from "@/components/AppLayout";
 import { 
   BookOpen, 
   Plus,
@@ -17,21 +19,12 @@ import CourseCard from "../components/dashboard/CourseCard";
 import UpcomingAssignments from "../components/dashboard/UpcomingAssignments";
 import RecentAnnouncements from "../components/dashboard/RecentAnnouncements";
 import StudentIDCard from "../components/student/StudentIDCard";
-import ProfileEditor from "../components/student/ProfileEditor"; // Added import
+import ProfileEditor from "../components/student/ProfileEditor";
 
 export default function Dashboard() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [loadingError, setLoadingError] = useState(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Mock user for now - since auth endpoint might not be working
-    setUser({
-      full_name: 'Demo Student',
-      email: 'demo@hbiu.edu',
-      role: 'student'
-    });
-  }, [navigate]);
 
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useQuery({
     queryKey: ['courses'],
@@ -111,7 +104,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <AppLayout>
       {/* Purple Header Section with margin and rounded edges */}
       <div className="p-6 pt-8">
         <div className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 text-white rounded-2xl shadow-lg">
@@ -247,6 +240,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }

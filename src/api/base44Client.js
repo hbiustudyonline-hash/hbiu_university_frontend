@@ -4,7 +4,7 @@ const API_BASE_URL = import.meta.env.PROD
   : 'http://localhost:3001/api';
 
 // Temporary mock mode for testing (set to false when backend is running)
-const MOCK_MODE = false;
+const MOCK_MODE = true;
 
 // Clear any old mock tokens on app load
 (() => {
@@ -77,16 +77,36 @@ export const base44 = {
         // Mock login for testing without backend
         const mockUsers = {
           'admin@hbiu.edu': { 
-            id: 1, firstName: 'Admin', lastName: 'User', email: 'admin@hbiu.edu', role: 'admin' 
+            id: 1, 
+            firstName: 'Admin', 
+            lastName: 'User', 
+            full_name: 'Admin User',
+            email: 'admin@hbiu.edu', 
+            role: 'admin' 
           },
           'student@hbiu.edu': { 
-            id: 2, firstName: 'Student', lastName: 'User', email: 'student@hbiu.edu', role: 'student' 
+            id: 2, 
+            firstName: 'Student', 
+            lastName: 'User', 
+            full_name: 'Student User',
+            email: 'student@hbiu.edu', 
+            role: 'student' 
           },
           'lecturer@hbiu.edu': { 
-            id: 3, firstName: 'Lecturer', lastName: 'User', email: 'lecturer@hbiu.edu', role: 'lecturer' 
+            id: 3, 
+            firstName: 'Lecturer', 
+            lastName: 'User', 
+            full_name: 'Lecturer User',
+            email: 'lecturer@hbiu.edu', 
+            role: 'lecturer' 
           },
           'college@hbiu.edu': { 
-            id: 4, firstName: 'College', lastName: 'Admin', email: 'college@hbiu.edu', role: 'college_admin' 
+            id: 4, 
+            firstName: 'College', 
+            lastName: 'Admin', 
+            full_name: 'College Admin',
+            email: 'college@hbiu.edu', 
+            role: 'college_admin' 
           }
         };
         
@@ -136,14 +156,21 @@ export const base44 = {
     me: () => {
       if (MOCK_MODE) {
         const token = getAuthToken();
-        if (token) {
-          return Promise.resolve({
-            id: 1,
-            firstName: 'Admin',
-            lastName: 'User',
-            email: 'admin@hbiu.edu',
-            role: 'admin'
-          });
+        const userData = localStorage.getItem('userData');
+        if (token && userData) {
+          try {
+            return Promise.resolve(JSON.parse(userData));
+          } catch {
+            // Fallback to default admin user
+            return Promise.resolve({
+              id: 1,
+              firstName: 'Admin',
+              lastName: 'User',
+              full_name: 'Admin User',
+              email: 'admin@hbiu.edu',
+              role: 'admin'
+            });
+          }
         }
         return Promise.reject(new Error('No token'));
       }
