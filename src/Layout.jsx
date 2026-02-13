@@ -33,22 +33,24 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
-  const [user, setUser] = React.useState(null);
-  const [isLoadingAuth, setIsLoadingAuth] = React.useState(true);
+  // TEMPORARY: Use auth from context instead of fetching separately
+  const { user, isLoading: isLoadingAuth } = useAuth();
 
   // List of public pages that don't require authentication
   const publicPages = ['Home', 'About', 'Programs', 'Courses', 'course-detail', 'Colleges', 'ProgramsCatalog'];
   const isPublicPage = publicPages.includes(currentPageName);
 
-  React.useEffect(() => {
-    base44.auth.me()
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setIsLoadingAuth(false));
-  }, []);
+  // Remove the separate auth check that was causing flashing
+  // React.useEffect(() => {
+  //   base44.auth.me()
+  //     .then(setUser)
+  //     .catch(() => setUser(null))
+  //     .finally(() => setIsLoadingAuth(false));
+  // }, []);
 
   // Apply RTL layout if user's language is RTL
   const isRTLLanguage = false; // Simplified - removed RTL detection
@@ -71,12 +73,13 @@ export default function Layout({ children, currentPageName }) {
   }
 
   // For private pages, show loading while checking auth
+  // TEMPORARY: Skip redirect check during bypass mode
   // useEffect hook must be called at the top level, before any conditional returns
-  React.useEffect(() => {
-    if (!user) {
-      base44.auth.redirectToLogin(window.location.pathname);
-    }
-  }, [user]);
+  // React.useEffect(() => {
+  //   if (!user) {
+  //     base44.auth.redirectToLogin(window.location.pathname);
+  //   }
+  // }, [user]);
 
   if (isLoadingAuth) {
     return (
@@ -89,18 +92,17 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  // For private pages, redirect to login if not authenticated
-  if (!user) {
-
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Redirecting to login...</p>
-        </div>
-      </div>
-    );
-  }
+  // TEMPORARY: Skip redirect for bypass mode - render content even without user
+  // if (!user) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4" />
+  //         <p className="text-gray-600 text-lg">Redirecting to login...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   const isInstructor = user?.role === 'admin';
 

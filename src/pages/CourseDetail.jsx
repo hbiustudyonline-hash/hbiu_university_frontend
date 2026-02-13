@@ -17,7 +17,6 @@ import {
   LayoutGrid,
   File,
   Calendar,
-  Video,
   Target,
   ArrowLeft
 } from "lucide-react";

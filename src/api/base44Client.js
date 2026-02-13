@@ -1,16 +1,17 @@
 // Node.js Express backend API client
 const API_BASE_URL = import.meta.env.PROD 
   ? 'https://hbiuuniversitybackendnode-production.up.railway.app/api'
-  : 'http://localhost:5000/api';
+  : 'http://localhost:5001/api';
 
-// Temporary mock mode for testing (set to false when backend is running)
+// TEMPORARY: Enable mock mode to bypass backend authentication
 const MOCK_MODE = true;
 
-// Clear any old mock tokens on app load
+// TEMPORARY: Don't clear bypass tokens on app load (allow mock-bypass-token)
 (() => {
   const token = localStorage.getItem('token');
-  if (token && token.startsWith('mock-')) {
-    console.log('Clearing old mock token');
+  // Only clear old malformed mock tokens, not our bypass token
+  if (token && token.startsWith('mock-jwt-token')) {
+    console.log('Clearing old mock-jwt-token');
     localStorage.removeItem('token');
     localStorage.removeItem('userData');
   }
@@ -19,7 +20,7 @@ const MOCK_MODE = true;
 // Get JWT token from localStorage
 const getAuthToken = () => {
   const token = localStorage.getItem('token');
-  // Clear malformed mock tokens
+  // TEMPORARY: Allow mock-bypass-token, only clear malformed tokens
   if (token && token.startsWith('mock-jwt-token')) {
     localStorage.removeItem('token');
     return null;

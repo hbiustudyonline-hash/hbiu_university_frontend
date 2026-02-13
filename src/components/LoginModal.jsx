@@ -36,36 +36,54 @@ const LoginModal = ({ isOpen, onClose }) => {
     role: 'student'
   });
 
+  const getEmailToRoleMapping = (email) => {
+    const emailRoleMap = {
+      'admin@hbiu.edu': { role: 'admin', firstName: 'Admin', lastName: 'User' },
+      'john.smith@hbiu.edu': { role: 'lecturer', firstName: 'John', lastName: 'Smith' },
+      'lecturer@hbiu.edu': { role: 'lecturer', firstName: 'Lecturer', lastName: 'User' },
+      'college@hbiu.edu': { role: 'college_admin', firstName: 'College', lastName: 'Admin' },
+      'student@hbiu.edu': { role: 'student', firstName: 'Student', lastName: 'User' }
+    };
+    return emailRoleMap[email] || { role: 'student', firstName: 'User', lastName: 'Demo' };
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
+    // TEMPORARY: Bypass authentication - go straight to dashboard
     try {
-      const response = await base44.auth.login(loginData.email, loginData.password);
+      console.log('[LOGIN] Bypassing authentication, redirecting to dashboard');
       
-      if (response.success || response.data) {
-        const userData = response.data?.user || response.user || response.data;
-        const token = response.data?.token || response.token;
-        
-        console.log('[LOGIN] Login successful, calling auth.login()');
-        login(userData, token);
-        
-        // Small delay to ensure localStorage is persisted before redirect
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Redirect based on role
-        const redirectPath = getRoleBasedRedirect(userData.role);
-        console.log('[LOGIN] Redirecting to:', redirectPath);
-        window.location.href = redirectPath;
-        
-        onClose();
-      } else {
-        throw new Error('Login failed');
-      }
+      // Get role based on email
+      const userInfo = getEmailToRoleMapping(loginData.email);
+      
+      // Mock user data with appropriate role
+      const userData = {
+        id: 1,
+        email: loginData.email,
+        firstName: userInfo.firstName,
+        lastName: userInfo.lastName,
+        role: userInfo.role,
+        full_name: `${userInfo.firstName} ${userInfo.lastName}`
+      };
+      const token = 'mock-bypass-token';
+      
+      login(userData, token);
+      
+      // Small delay for smooth transition
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Redirect based on role
+      const redirectPath = getRoleBasedRedirect(userData.role);
+      console.log('[LOGIN] Redirecting to:', redirectPath, 'for role:', userData.role);
+      window.location.href = redirectPath;
+      
+      onClose();
     } catch (err) {
-      console.error('[LOGIN] Login error:', err);
-      setError(err.message || 'Login failed. Please try again.');
+      console.error('[LOGIN] Redirect error:', err);
+      setError('Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -150,9 +168,33 @@ const LoginModal = ({ isOpen, onClose }) => {
     ];
   };
 
-  const handleDemoLogin = (email, password) => {
-    setLoginData({ email, password });
-    setActiveTab('login');
+  const handleDemoLogin = async (email, password) => {
+    // TEMPORARY: Bypass authentication - go straight to dashboard
+    console.log('[DEMO] Bypassing demo login for:', email);
+    
+    // Get role based on email
+    const userInfo = getEmailToRoleMapping(email);
+    
+    const userData = {
+      id: 1,
+      email: email || 'demo@hbiu.edu',
+      firstName: userInfo.firstName,
+      lastName: userInfo.lastName,
+      role: userInfo.role,
+      full_name: `${userInfo.firstName} ${userInfo.lastName}`
+    };
+    const token = 'mock-bypass-token';
+    
+    login(userData, token);
+    
+    // Small delay for smooth transition
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Redirect based on role
+    const redirectPath = getRoleBasedRedirect(userData.role);
+    console.log('[DEMO] Redirecting to:', redirectPath, 'for role:', userData.role);
+    window.location.href = redirectPath;
+    onClose();
   };
 
   return (

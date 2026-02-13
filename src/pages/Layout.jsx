@@ -35,10 +35,11 @@ export default function Layout({ children, currentPageName }) {
     return <>{children}</>;
   }
 
+  // TEMPORARY: Skip redirect check during bypass mode
   // Redirect to home if not authenticated and not on login page
-  if (!isAuthenticated && currentPageName !== 'Home') {
-    return <Navigate to="/" replace />;
-  }
+  // if (!isAuthenticated && currentPageName !== 'Home') {
+  //   return <Navigate to="/" replace />;
+  // }
   
   const handleLogout = () => {
     logout();

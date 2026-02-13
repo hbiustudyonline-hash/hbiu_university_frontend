@@ -4,9 +4,30 @@ import { base44 } from '@/api/base44Client';
 import { AuthContext } from './AuthContextDefinition';
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // TEMPORARY: Check for stored user or use default mock user
+  const getInitialUser = () => {
+    const storedUserData = localStorage.getItem('userData');
+    if (storedUserData) {
+      try {
+        return JSON.parse(storedUserData);
+      } catch (e) {
+        console.error('[AUTH] Error parsing stored userData:', e);
+      }
+    }
+    // Default mock user if nothing stored
+    return {
+      id: 1,
+      email: 'demo@hbiu.edu',
+      firstName: 'Demo',
+      lastName: 'User',
+      role: 'student',
+      full_name: 'Demo User'
+    };
+  };
+
+  const [user, setUser] = useState(getInitialUser());
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const isMountedRef = useRef(true);
 
   // Check for existing authentication on app load
@@ -15,6 +36,29 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuthStatus = async () => {
       try {
+        // TEMPORARY: Use stored user data or default
+        const storedUserData = localStorage.getItem('userData');
+        const storedToken = localStorage.getItem('token');
+        
+        if (!cancelled) {
+          if (storedUserData && storedToken) {
+            // Use stored user from login
+            const parsedUser = JSON.parse(storedUserData);
+            setUser(parsedUser);
+            console.log('[AUTH] Using stored user:', parsedUser.email, 'Role:', parsedUser.role);
+          } else {
+            // Set default mock user
+            const defaultUser = getInitialUser();
+            setUser(defaultUser);
+            localStorage.setItem('token', 'mock-bypass-token');
+            localStorage.setItem('userData', JSON.stringify(defaultUser));
+            console.log('[AUTH] Using default user with role:', defaultUser.role);
+          }
+          setIsAuthenticated(true);
+          setIsLoading(false);
+        }
+        return;
+
         const token = localStorage.getItem('token');
         const userData = localStorage.getItem('userData');
         
