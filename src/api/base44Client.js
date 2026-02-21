@@ -1,4 +1,6 @@
 // Node.js Express backend API client
+import coursesData from '@/data/courses.json';
+
 const API_BASE_URL = import.meta.env.PROD 
   ? 'https://hbiuuniversitybackendnode-production.up.railway.app/api'
   : 'http://localhost:5001/api';
@@ -26,6 +28,27 @@ const getAuthToken = () => {
     return null;
   }
   return token;
+};
+
+// Map college names from courses.json to match Colleges page names
+const normalizeCollegeName = (collegeName) => {
+  const collegeNameMap = {
+    'College of Business & Economics': 'College of Business Economics',
+    'College of Architecture, Arts, and Design': 'College of Architecture, Arts and Design',
+    'College of Arts and Human': 'College of Arts and Humanities',
+    'College of Earth, Science, and Industrial Technology': 'College of Earth Science and Industrial Technologies',
+    'College of Education and Human': 'College of Education and Human Development',
+    'College of Science and': 'College of Science and Engineering',
+    'College of Tourism and Hospitality Management': 'College of Tourism, Hospitality, Management',
+    'HBIU College for Coach': 'HBIU College of Coaching',
+    'HBIU College for Fashion Design': 'HBIU College of Fashion Design',
+    'HBIU College for Prior Learning': 'HBIU College for Prior Learning',
+    'HBIU Training Institute Certificate Courses': 'HBIU Training Institute',
+    'HBIU School of Nature': 'College of Nature',
+    'HBI School of Cosmetology': 'College of Cosmetology',
+  };
+  
+  return collegeNameMap[collegeName] || collegeName;
 };
 
 // Helper function to make API requests
@@ -252,249 +275,24 @@ export const base44 = {
     Course: {
       list: (sort = '-created_at', limit = 100) => {
         if (MOCK_MODE) {
-          // Mock courses for various colleges
-          const mockCourses = [
-            // College of International Studies
-            {
-              id: 1,
-              code: 'IRD 358',
-              title: 'Intelligence & Foreign Policy',
-              description: 'Comprehensive study of intelligence operations and foreign policy strategies in the modern era.',
-              category: 'Intelligence & Foreign Policy',
-              level: 'Bachelor',
-              credits: 3,
-              startDate: '2025-09-01',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            {
-              id: 2,
-              code: 'IRD 356',
-              title: 'International Trade Policy',
-              description: 'Analysis of international trade patterns, policy frameworks, and global economic relations.',
-              category: 'International Trade Policy',
-              level: 'Bachelor',
-              credits: 3,
-              startDate: '2025-09-01',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            {
-              id: 3,
-              code: 'GTE 359',
-              title: 'Global Financial Crises',
-              description: 'Examination of global financial crises, regulatory frameworks, and crisis management strategies.',
-              category: 'Global Financial Crises',
-              level: 'Bachelor',
-              credits: 3,
-              startDate: '2025-09-01',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            {
-              id: 4,
-              code: 'GSC 285',
-              title: 'Global Supply Chain Management',
-              description: 'Introduction to international logistics, supply chain optimization, and cross-border operations.',
-              category: 'Global Supply Chain Management',
-              level: 'Bachelor',
-              credits: 3,
-              startDate: '2025-09-01',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            {
-              id: 5,
-              code: 'GTE 20',
-              title: 'Global Markets & Competition',
-              description: 'Study of international market dynamics, competitive strategies, and global business environments.',
-              category: 'Global Markets & Competition',
-              level: 'Bachelor',
-              credits: 3,
-              startDate: '2025-09-01',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            {
-              id: 6,
-              code: 'UNI 120',
-              title: 'College Algebra or Quantitative Reasoning',
-              description: 'Mathematical foundations including algebra, quantitative analysis, and problem-solving.',
-              category: 'College Algebra or Quantitative Reasoning',
-              level: 'Bachelor',
-              credits: 3,
-              startDate: '2025-09-01',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            {
-              id: 7,
-              code: 'ANT 240',
-              title: 'Ethnographic Methods',
-              description: 'Advanced qualitative research techniques for studying cultures and international communities.',
-              category: 'Ethnographic Methods',
-              level: 'Bachelor',
-              credits: 3,
-              startDate: '2026-01-15',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            {
-              id: 8,
-              code: 'IES 340',
-              title: 'Environmental Risk & Resilience',
-              description: 'Examination of environmental challenges, risk assessment, and resilience strategies.',
-              category: 'Environmental Risk & Resilience',
-              level: 'Bachelor',
-              credits: 3,
-              startDate: '2026-01-15',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            {
-              id: 9,
-              code: 'GTH 353',
-              title: 'Cruise & Resort Management',
-              description: 'Management principles for cruise lines, resorts, and international hospitality operations.',
-              category: 'Cruise & Resort Management',
-              level: 'Bachelor',
-              credits: 3,
-              startDate: '2026-01-15',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            {
-              id: 10,
-              code: 'ECM 315',
-              title: 'Event & Convention Management',
-              description: 'Planning and execution of international events, conventions, and conferences.',
-              category: 'Event & Convention Management',
-              level: 'Bachelor',
-              credits: 3,
-              startDate: '2026-01-15',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            {
-              id: 11,
-              code: 'RES 410',
-              title: 'Research Design',
-              description: 'Comprehensive training in quantitative and qualitative research methodology.',
-              category: 'Research Design',
-              level: 'PhD',
-              credits: 4,
-              startDate: '2025-09-01',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            {
-              id: 12,
-              code: 'MPG 475',
-              title: 'Migration Policy & Global Governance',
-              description: 'Analysis of global migration patterns, refugee policies, and governance frameworks.',
-              category: 'Migration Policy & Global Governance',
-              level: 'PhD',
-              credits: 4,
-              startDate: '2026-01-15',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            {
-              id: 13,
-              code: 'CTH 290',
-              title: 'Christian Theology & Global Ethics',
-              description: 'Exploration of Christian theological perspectives on international affairs.',
-              category: 'Christian Theology & Global Ethics',
-              level: 'Master',
-              credits: 3,
-              startDate: '2025-09-01',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            {
-              id: 14,
-              code: 'POL 380',
-              title: 'Political Inquiry & Comparative Politics',
-              description: 'Systematic study of political systems and comparative political analysis.',
-              category: 'Political Inquiry & Comparative Politics',
-              level: 'Master',
-              credits: 3,
-              startDate: '2026-01-15',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            {
-              id: 15,
-              code: 'CRM 395',
-              title: 'Cruise Line Operations & Management',
-              description: 'Operational management principles for international cruise line operations.',
-              category: 'Cruise Line Operations & Management',
-              level: 'Bachelor',
-              credits: 3,
-              startDate: '2026-01-15',
-              college: { id: 1, name: 'College of International Studies' }
-            },
-            
-            // College of Nursing
-            {
-              id: 101,
-              code: 'NUR201',
-              title: 'Fundamentals of Nursing Practice',
-              description: 'Core nursing skills, patient care techniques, and professional nursing standards.',
-              category: 'Nursing Practice',
-              level: 'Bachelor',
-              credits: 4,
-              startDate: '2025-09-01',
-              college: { id: 2, name: 'College of Nursing' }
-            },
-            {
-              id: 102,
-              code: 'NUR310',
-              title: 'Advanced Health Assessment',
-              description: 'Comprehensive patient assessment techniques, diagnostic reasoning, and clinical decision-making.',
-              category: 'Clinical Skills',
-              level: 'Master',
-              credits: 3,
-              startDate: '2026-01-15',
-              college: { id: 2, name: 'College of Nursing' }
-            },
-            
-            // College of Business Administration
-            {
-              id: 201,
-              code: 'BUS101',
-              title: 'Introduction to Business Management',
-              description: 'Foundational concepts in business operations, management principles, and organizational behavior.',
-              category: 'Management',
-              level: 'Bachelor',
-              credits: 3,
-              startDate: '2025-09-01',
-              college: { id: 3, name: 'College of Business Administration' }
-            },
-            {
-              id: 202,
-              code: 'BUS305',
-              title: 'Strategic Marketing',
-              description: 'Advanced marketing strategies, consumer behavior analysis, and brand management.',
-              category: 'Marketing',
-              level: 'Master',
-              credits: 3,
-              startDate: '2025-09-01',
-              college: { id: 3, name: 'College of Business Administration' }
-            },
-            
-            // College of Engineering
-            {
-              id: 301,
-              code: 'ENG105',
-              title: 'Engineering Design & Innovation',
-              description: 'Introduction to engineering design process, problem-solving, and innovative thinking.',
-              category: 'Engineering',
-              level: 'Bachelor',
-              credits: 4,
-              startDate: '2025-09-01',
-              college: { id: 4, name: 'College of Engineering' }
-            },
-            {
-              id: 302,
-              code: 'ENG420',
-              title: 'Advanced Systems Engineering',
-              description: 'Complex systems analysis, integration techniques, and large-scale project management.',
-              category: 'Systems',
-              level: 'PhD',
-              credits: 4,
-              startDate: '2026-01-15',
-              college: { id: 4, name: 'College of Engineering' }
+          // Convert courses from courses.json to match the expected format
+          const formattedCourses = coursesData.courses.slice(0, 500).map((course, index) => ({
+            id: index + 1,
+            code: course.code,
+            title: course.title,
+            description: course.description,
+            category: course.title,
+            level: course.program,
+            credits: course.credits,
+            startDate: course.semester === 'Semester 1' ? '2025-09-01' : '2026-01-15',
+            thumbnail: course.image,
+            college: { 
+              id: index + 1, 
+              name: normalizeCollegeName(course.college)
             }
-          ];
+          }));
           
-          return Promise.resolve(mockCourses);
+          return Promise.resolve(formattedCourses);
         }
         return apiRequest(`/courses`);
       },
