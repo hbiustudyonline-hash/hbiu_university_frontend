@@ -6,6 +6,7 @@ import AdminDashboard from "./AdminDashboard";
 import LecturerDashboard from "./LecturerDashboard";
 import CourseDetail from "./CourseDetail";
 import EnrollmentDashboard from "./EnrollmentDashboard";
+import Colleges from "./Colleges";
 // import CollegeAdminDashboard from "./CollegeAdminDashboard"; // Temporarily disabled
 import LoginTest from "./LoginTest";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -100,6 +101,14 @@ export default function Pages() {
           element={
             <ProtectedRoute>
               <CourseDetail />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/colleges" 
+          element={
+            <ProtectedRoute>
+              <Colleges />
             </ProtectedRoute>
           } 
         />

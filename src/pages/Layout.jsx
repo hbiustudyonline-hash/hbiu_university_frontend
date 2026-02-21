@@ -60,7 +60,7 @@ export default function Layout({ children, currentPageName }) {
     {
       title: "Colleges",
       url: createPageUrl("Colleges"),
-      icon: BookOpen,
+      icon: Building2,
     },
     {
       title: "Courses",
