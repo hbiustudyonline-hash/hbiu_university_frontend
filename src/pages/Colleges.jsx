@@ -70,9 +70,89 @@ const collegeImages = {
   "College of Nature": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80"
 };
 
+// Detailed programs for College of International Studies
+const internationalStudiesPrograms = [
+  // Master's Programs
+  { level: "Master", title: "Master of Science in Sustainable International Development with a Minor in Faith-Based Development & Social Ethics", credits: 48, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master of Arts in Global Communication & Public Diplomacy with a Minor in Religion, Ethics & Public Discourse", credits: 48, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master of Science in Global Public Health Policy with a Minor in Comparative Theology", credits: 48, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master of Science in Intelligence, Security & Cyber Diplomacy with a Minor in Jewish Ethics", credits: 48, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master of Science in Global Economics & Strategic Trade with a Minor in Ethics, Faith & Global Markets", credits: 48, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master of Arts in Cross-Cultural Leadership & Global Engagement with a Minor in World Faith Traditions", credits: 48, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master of Arts in International Peace & Conflict Resolution with a Minor in Christian Ministry Studies", credits: 48, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master of Arts in Humanitarian Aid & Disaster Response with a Minor in Biblical Studies", credits: 48, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master of Arts in International Affairs & Global Policy with a Minor in Interfaith Dialogue", credits: 48, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master of Arts in Global Communication & Public Diplomacy with a Minor in Buddhist Studies", credits: 79, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master of Science in Sustainable International Development with a Minor in Indigenous Religious Studies", credits: 79, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master of Science in International Environmental Governance with a Minor in Comparative Religious Ethics", credits: 79, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master of Science in Intelligence, Security & Cyber Diplomacy with a Minor in Jewish Ethics", credits: 79, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master of Science in Global Public Health Policy with a Minor in Comparative Theology", credits: 79, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master of Science in Global Economics & Strategic Trade with a Minor in Islamic Thought", credits: 79, duration: "2 Years", courses: 45 },
+  { level: "Master", title: "Master in International Relations (Minor in Faith-Based Global Development and Diplomacy)", credits: 69, duration: "2 Years", courses: 45 },
+  
+  // PhD Programs
+  { level: "PhD", title: "PhD in Global Security & Peace with Minor in Religion, Conflict & Peacebuilding", credits: 103, duration: "4 Years", courses: 45 },
+  { level: "PhD", title: "PhD in Global Ethics & Policy with Minor in Religion & Global Ethics", credits: 103, duration: "4 Years", courses: 45 },
+  { level: "PhD", title: "PhD in Global Development & Policy with Minor in Religion & Development", credits: 103, duration: "4 Years", courses: 45 },
+  { level: "PhD", title: "PhD in MENA Studies with a Minor in Religion & Politics in the MENA", credits: 103, duration: "4 Years", courses: 45 },
+  { level: "PhD", title: "PhD in International Political Economy with Minor in Religion & Global Markets", credits: 103, duration: "4 Years", courses: 45 },
+  { level: "PhD", title: "PhD in Migration & Diaspora Studies with Minor in Religion & Migration", credits: 103, duration: "4 Years", courses: 45 },
+  { level: "PhD", title: "PhD in African Studies with Minor in Religion & African International Affairs", credits: 103, duration: "4 Years", courses: 45 },
+  { level: "PhD", title: "PhD in Global Media & Communication with Minor in Religion & Media", credits: 103, duration: "4 Years", courses: 45 },
+  { level: "PhD", title: "PhD in International Human Rights with Minor in Religion & Human Rights", credits: 103, duration: "4 Years", courses: 45 },
+  { level: "PhD", title: "PhD in International Studies with Minor in Global Religion & World Affairs", credits: 103, duration: "4 Years", courses: 45 },
+  
+  // Bachelor's Programs
+  { level: "Bachelor", title: "Bachelor of Arts in Cultural Anthropology & Global Studies with a Minor in African Traditional Religions", credits: 135, duration: "4 Years", courses: 45 },
+  { level: "Bachelor", title: "Bachelor of Science in Global Health & Humanitarian Studies with a Minor in World Religions", credits: 135, duration: "4 Years", courses: 45 },
+  { level: "Bachelor", title: "Bachelor of Science in International Environmental Sustainability with a Minor in Indigenous Spiritual Traditions", credits: 135, duration: "4 Years", courses: 45 },
+  { level: "Bachelor", title: "Bachelor of Arts in Global Tourism & International Hospitality with a Minor in Comparative Scripture Studies", credits: 135, duration: "4 Years", courses: 47 },
+  { level: "Bachelor", title: "Bachelor of Arts in International Development & Policy with a Minor in Interfaith Studies", credits: 135, duration: "4 Years", courses: 45 },
+  { level: "Bachelor", title: "Bachelor of Arts in Global Communication & Media with a Minor in Interfaith Studies", credits: 135, duration: "4 Years", courses: 45 },
+  { level: "Bachelor", title: "Bachelor of Science in Global Health & Humanitarian Studies with a Minor in World Religions", credits: 135, duration: "4 Years", courses: 45 },
+  { level: "Bachelor", title: "Bachelor of Arts in International Relations & Diplomacy with a Minor in Christian Theology", credits: 135, duration: "4 Years", courses: 45 },
+  { level: "Bachelor", title: "Bachelor of Science in International Security & Intelligence with a Minor in Jewish Studies", credits: 135, duration: "4 Years", courses: 45 },
+  { level: "Bachelor", title: "Bachelor of Arts in Global Tourism & International Hospitality with a Minor in Comparative Scripture Studies", credits: 134, duration: "4 Years", courses: 45 },
+  { level: "Bachelor", title: "Bachelor of Science in Global Trade & Economics with a Minor in Interfaith Studies", credits: 120, duration: "0 Years", courses: 45 },
+  { level: "Bachelor", title: "Bachelor of Arts in International Development & Policy with a Minor in Interfaith Studies", credits: 135, duration: "4 Years", courses: 45 },
+  { level: "Bachelor", title: "Bachelor of Arts in Global Communication & Media with a Minor in Interfaith Studies", credits: 134, duration: "4 Years", courses: 45 },
+  { level: "Bachelor", title: "Bachelor of Arts in Cultural Anthropology & Global Studies with a Minor in African Traditional Religions", credits: 135, duration: "4 Years", courses: 47 },
+  { level: "Bachelor", title: "Bachelor of Science in Human Rights, Peace & Conflict Studies with a Minor in Biblical Studies", credits: 135, duration: "4 Years", courses: 45 },
+  { level: "Bachelor", title: "Bachelor in International Relations (Minor in Faith-Based Global Development and Diplomacy)", credits: 135, duration: "4 Years", courses: 45 },
+  
+  // Doctorate Programs
+  { level: "Doctorate", title: "Doctor of International Trade (Minor in Faith-Based Fair Trade Advocacy)", credits: 105, duration: "3 Years", courses: 45 },
+  { level: "Doctorate", title: "Doctor of Philosophy in International Relations & Global Governance with a Minor in World Religions", credits: 96, duration: "4 Years", courses: 45 }
+];
+
 const collegesData = [
-  "College of International Studies",
-  "College of Aviation",
+  {
+    id: 1,
+    name: "College of International Studies",
+    dean: "TBA",
+    email: "info1@hbiu.edu",
+    theme: colorThemes[0],
+    image: collegeImages["College of International Studies"],
+    about: "The College of International Studies is dedicated to preparing global leaders who understand the complex interplay of international relations, cultural dynamics, and faith-based perspectives. Our programs integrate rigorous academic study with practical experience in diplomacy, development, security, and cross-cultural engagement.",
+    programOutline: "Our comprehensive curriculum spans Bachelor's, Master's, and Doctoral programs, each designed to equip students with the knowledge, skills, and ethical framework needed for impactful careers in international affairs. Programs emphasize interdisciplinary learning, combining political science, economics, cultural studies, and religious perspectives.",
+    detailedPrograms: internationalStudiesPrograms,
+    courses: internationalStudiesPrograms,
+    staff: ["Dean of International Studies", "Associate Dean for Academic Affairs", "Director of Global Programs", "Faculty Members (20+)", "Administrative Staff"],
+    announcements: [
+      "Welcome to the new academic year!",
+      "International Student Exchange Program applications now open.",
+      "Global Leadership Summit - Register now for our annual conference.",
+      "New partnerships with universities in 15 countries announced."
+    ],
+    community: "Our college maintains active partnerships with international organizations, embassies, NGOs, and academic institutions worldwide. Students engage in study abroad programs, international internships, and collaborative research projects that address global challenges through culturally-sensitive and faith-informed approaches.",
+    adminInfo: "The College of International Studies maintains accreditation through relevant international education bodies and adheres to the highest standards of academic excellence. Our programs are regularly reviewed and updated to reflect current global dynamics and emerging international issues.",
+    statistics: {
+      students: 450,
+      faculty: 35,
+      programs: internationalStudiesPrograms.length
+    }
+  },
+  ...["College of Aviation",
   "College of Chaplaincy",
   "College of Naturopathic Medicine",
   "College of Addiction Counseling",
@@ -109,19 +189,19 @@ const collegesData = [
   "College of Cosmetology",
   "College of Nature"
 ].map((name, index) => ({
-  id: index + 1,
+  id: index + 2,
   name,
   dean: "TBA",
-  email: `info${index + 1}@hbiu.edu`,
-  theme: colorThemes[index % colorThemes.length],
+  email: `info${index + 2}@hbiu.edu`,
+  theme: colorThemes[(index + 1) % colorThemes.length],
   image: collegeImages[name],
   about: "This college is committed to academic excellence, leadership development, and professional preparation within its discipline. We provide world-class education that prepares students for successful careers and meaningful contributions to society.",
   programOutline: "Program outlines will be structured by academic level, specialization, credit requirements, practicum components, and capstone expectations. Each program is designed to meet industry standards and accreditation requirements.",
   courses: [
-    "Undergraduate Programs",
-    "Graduate Programs",
-    "Doctoral Programs",
-    "Certificate Programs"
+    { level: "Bachelor", title: "Undergraduate Programs", credits: 120, duration: "4 Years", courses: 40 },
+    { level: "Master", title: "Graduate Programs", credits: 48, duration: "2 Years", courses: 16 },
+    { level: "PhD", title: "Doctoral Programs", credits: 90, duration: "4 Years", courses: 30 },
+    { level: "Certificate", title: "Certificate Programs", credits: 30, duration: "1 Year", courses: 10 }
   ],
   staff: ["Dean", "Associate Dean", "Program Director", "Faculty Members", "Administrative Staff"],
   announcements: [
@@ -136,7 +216,8 @@ const collegesData = [
     faculty: Math.floor(Math.random() * 50) + 10,
     programs: Math.floor(Math.random() * 15) + 5
   }
-}));
+}))
+];
 
 export default function Colleges() {
   const [activeCollege, setActiveCollege] = useState(null);
@@ -344,19 +425,85 @@ export default function Colleges() {
           {activeTab === "courses" && (
             <div>
               <h3 className="text-2xl font-bold mb-4">Available Programs</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {activeCollege.courses.map((course, i) => (
-                  <Card key={i} className="bg-gradient-to-br from-blue-50 to-indigo-50">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 bg-gradient-to-r ${activeCollege.theme} rounded-lg flex items-center justify-center`}>
-                          <BookOpen className="w-5 h-5 text-white" />
-                        </div>
-                        <span className="font-semibold">{course}</span>
+              
+              {/* Program Statistics Summary */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                {['Bachelor', 'Master', 'PhD', 'Doctorate'].map(level => {
+                  const count = activeCollege.courses.filter(c => c.level === level).length;
+                  if (count === 0) return null;
+                  return (
+                    <Card key={level} className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white">
+                      <CardContent className="p-4 text-center">
+                        <GraduationCap className="w-8 h-8 mx-auto mb-2" />
+                        <div className="text-3xl font-bold">{count}</div>
+                        <div className="text-sm opacity-90">{level} Programs</div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {/* Programs List */}
+              <div className="space-y-6">
+                {['Master', 'PhD', 'Bachelor', 'Doctorate', 'Associate', 'Certificate'].map(level => {
+                  const programs = activeCollege.courses.filter(c => c.level === level);
+                  if (programs.length === 0) return null;
+                  
+                  return (
+                    <div key={level}>
+                      <h4 className="text-xl font-bold mb-3 text-gray-800">{level} Programs ({programs.length})</h4>
+                      <div className="grid grid-cols-1 gap-3">
+                        {programs.map((program, i) => (
+                          <Card key={i} className="hover:shadow-lg transition-shadow border-l-4 border-blue-500">
+                            <CardContent className="p-4">
+                              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Badge className={`${
+                                      level === 'PhD' || level === 'Doctorate' ? 'bg-green-500' :
+                                      level === 'Master' ? 'bg-purple-500' :
+                                      'bg-blue-500'
+                                    } text-white`}>
+                                      {program.level}
+                                    </Badge>
+                                  </div>
+                                  <h5 className="font-semibold text-gray-900 mb-1">
+                                    {typeof program === 'string' ? program : program.title}
+                                  </h5>
+                                  {program.credits && (
+                                    <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-2">
+                                      <div className="flex items-center gap-1">
+                                        <BookOpen className="w-4 h-4" />
+                                        <span>{program.credits} Credits</span>
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <GraduationCap className="w-4 h-4" />
+                                        <span>{program.duration}</span>
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <Award className="w-4 h-4" />
+                                        <span>{program.courses} Courses</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    className="text-xs"
+                                  >
+                                    View Details
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
