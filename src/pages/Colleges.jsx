@@ -228,6 +228,9 @@ export default function Colleges() {
   const [activeTab, setActiveTab] = useState("about");
   const [collegeCourses, setCollegeCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
+  const [courseSearchTerm, setCourseSearchTerm] = useState("");
+  const [selectedProgram, setSelectedProgram] = useState("all");
+  const [selectedSemester, setSelectedSemester] = useState("all");
   const { user, isAdmin, isLecturer, isStudent } = useAuth();
 
   // Generate appropriate course cover image based on course category/title
@@ -757,56 +760,135 @@ export default function Colleges() {
 
           {activeTab === "courses" && (
             <div>
-              <h3 className="text-2xl font-bold mb-4">Courses Catalog</h3>
-              <p className="text-gray-600 mb-6">
-                Browse individual courses offered by {activeCollege.name}
-              </p>
+              {/* Header Section */}
+              <div className="mb-8">
+                <h3 className="text-3xl font-bold mb-2">Explore Our Courses</h3>
+                <p className="text-gray-600">
+                  {collegeCourses.length} courses available for enrollment
+                </p>
+              </div>
 
+              {/* Filters and Search Section */}
+              <div className="mb-8 flex flex-col md:flex-row gap-4">
+                {/* Search Bar */}
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="Search courses..."
+                    value={courseSearchTerm}
+                    onChange={(e) => setCourseSearchTerm(e.target.value)}
+                    className="pl-10 h-11"
+                  />
+                </div>
+
+                {/* Program Filter Dropdown */}
+                <select
+                  value={selectedProgram}
+                  onChange={(e) => setSelectedProgram(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-md bg-white h-11 min-w-[160px]"
+                >
+                  <option value="all">All Programs</option>
+                  <option value="Bachelor">Bachelor</option>
+                  <option value="Master">Master</option>
+                  <option value="PhD">PhD</option>
+                </select>
+
+                {/* Semester Filter Dropdown */}
+                <select
+                  value={selectedSemester}
+                  onChange={(e) => setSelectedSemester(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-md bg-white h-11 min-w-[160px]"
+                >
+                  <option value="all">All Semesters</option>
+                  <option value="Fall 2025">Fall 2025</option>
+                  <option value="Spring 2026">Spring 2026</option>
+                  <option value="Fall 2026">Fall 2026</option>
+                </select>
+              </div>
+
+              {/* Course Cards Grid */}
               {loadingCourses ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600" />
                 </div>
               ) : collegeCourses.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {collegeCourses.map((course) => (
-                    <Card key={course.id} className="overflow-hidden hover:shadow-xl transition-all duration-300">
+                  {collegeCourses
+                    .filter(course => {
+                      // Filter by search term
+                      const matchesSearch = courseSearchTerm === "" || 
+                        course.title.toLowerCase().includes(courseSearchTerm.toLowerCase()) ||
+                        course.code.toLowerCase().includes(courseSearchTerm.toLowerCase()) ||
+                        (course.category && course.category.toLowerCase().includes(courseSearchTerm.toLowerCase()));
+                      
+                      // Filter by program level
+                      const matchesProgram = selectedProgram === "all" || course.level === selectedProgram;
+                      
+                      // Filter by semester
+                      const courseSemester = course.startDate ? 
+                        new Date(course.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "";
+                      const matchesSemester = selectedSemester === "all" || courseSemester.includes(selectedSemester);
+                      
+                      return matchesSearch && matchesProgram && matchesSemester;
+                    })
+                    .map((course) => (
+                    <Card key={course.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0">
+                      {/* Course Image */}
                       <div className="relative h-48 overflow-hidden">
                         <img 
                           src={getCourseCoverImage(course)} 
                           alt={course.title}
                           className="w-full h-full object-cover"
                         />
-                        <div className="absolute top-3 right-3">
-                          <Badge className="bg-blue-500 text-white">
-                            {course.level || 'Bachelor'}
-                          </Badge>
-                        </div>
-                        <div className="absolute bottom-3 left-3">
-                          <Badge className="bg-white/90 text-gray-900 font-semibold">
+                        {/* Course Code Badge - Top Left */}
+                        <div className="absolute top-3 left-3">
+                          <Badge className="bg-white/95 text-gray-900 font-bold text-sm px-3 py-1 hover:bg-white">
                             {course.code}
                           </Badge>
                         </div>
+                        {/* Level Badge - Top Right */}
+                        <div className="absolute top-3 right-3">
+                          <Badge className={`${
+                            course.level === 'PhD' ? 'bg-pink-500' :
+                            course.level === 'Master' ? 'bg-purple-500' :
+                            'bg-blue-500'
+                          } text-white font-semibold text-sm px-3 py-1`}>
+                            {course.level || 'Bachelor'}
+                          </Badge>
+                        </div>
                       </div>
+
+                      {/* Course Info */}
                       <CardContent className="p-5">
-                        <h4 className="font-bold text-gray-900 mb-2 line-clamp-2">
+                        {/* Course Title */}
+                        <h4 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 min-h-[56px]">
                           {course.title}
                         </h4>
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                          {course.description || course.category}
+                        
+                        {/* Course Category/Subtitle */}
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-1">
+                          {course.category || course.description}
                         </p>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                          <div className="flex items-center gap-1">
-                            <BookOpen className="w-4 h-4" />
-                            <span>{course.credits} Credits</span>
-                          </div>
+
+                        {/* Date Info with Icon */}
+                        <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                          <Users className="w-4 h-4" />
                           {course.startDate && (
-                            <div className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              <span>{new Date(course.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-                            </div>
+                            <span>
+                              {new Date(course.startDate).toLocaleDateString('en-US', { 
+                                month: 'long', 
+                                year: 'numeric' 
+                              })}
+                            </span>
                           )}
                         </div>
-                        <Button className="w-full" size="sm">
+
+                        {/* View Details Button */}
+                        <Button 
+                          className="w-full bg-white text-gray-900 border border-gray-300 hover:bg-gray-50" 
+                          size="sm"
+                        >
                           View Details
                         </Button>
                       </CardContent>
