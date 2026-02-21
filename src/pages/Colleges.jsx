@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { base44 } from "@/api/base44Client";
 import { 
   Building2, 
   Search, 
@@ -13,7 +14,9 @@ import {
   BookOpen,
   GraduationCap,
   Award,
-  Globe
+  Globe,
+  Calendar,
+  Clock
 } from "lucide-react";
 
 const colorThemes = [
@@ -223,7 +226,79 @@ export default function Colleges() {
   const [activeCollege, setActiveCollege] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("about");
+  const [collegeCourses, setCollegeCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(false);
   const { user, isAdmin, isLecturer, isStudent } = useAuth();
+
+  // Generate appropriate course cover image based on course category/title
+  const getCourseCoverImage = (course) => {
+    if (course.thumbnail) return course.thumbnail;
+    
+    const title = course.title?.toLowerCase() || '';
+    const category = course.category?.toLowerCase() || '';
+    const searchText = `${title} ${category}`;
+    
+    // Map course topics to appropriate stock images
+    if (searchText.includes('intelligence') || searchText.includes('security')) {
+      return 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80';
+    } else if (searchText.includes('trade') || searchText.includes('econom')) {
+      return 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80';
+    } else if (searchText.includes('financial') || searchText.includes('crisis')) {
+      return 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80';
+    } else if (searchText.includes('supply chain') || searchText.includes('management')) {
+      return 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80';
+    } else if (searchText.includes('algebra') || searchText.includes('math')) {
+      return 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&q=80';
+    } else if (searchText.includes('media') || searchText.includes('communication')) {
+      return 'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?w=800&q=80';
+    } else if (searchText.includes('ethnographic') || searchText.includes('anthropology')) {
+      return 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80';
+    } else if (searchText.includes('environmental') || searchText.includes('climate')) {
+      return 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80';
+    } else if (searchText.includes('tourism') || searchText.includes('hospitality')) {
+      return 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80';
+    } else if (searchText.includes('event') || searchText.includes('convention')) {
+      return 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80';
+    } else if (searchText.includes('research') || searchText.includes('methods')) {
+      return 'https://images.unsplash.com/photo-1532619675605-1ede6c2ed2b0?w=800&q=80';
+    } else if (searchText.includes('migration') || searchText.includes('policy')) {
+      return 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?w=800&q=80';
+    } else if (searchText.includes('theology') || searchText.includes('christian')) {
+      return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80';
+    } else if (searchText.includes('political') || searchText.includes('inquiry')) {
+      return 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=800&q=80';
+    } else if (searchText.includes('cruise') || searchText.includes('resort')) {
+      return 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80';
+    }
+    
+    // Default image for general education
+    return 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&q=80';
+  };
+
+  // Fetch courses when a college is selected
+  useEffect(() => {
+    const fetchCollegeCourses = async () => {
+      if (activeCollege && activeTab === "courses") {
+        setLoadingCourses(true);
+        try {
+          // Fetch courses for this college from API
+          const response = await base44.Course.list();
+          // Filter courses by college name (you can also use collegeId if available)
+          const filtered = response.filter(course => 
+            course.college && course.college.name === activeCollege.name
+          );
+          setCollegeCourses(filtered);
+        } catch (error) {
+          console.error('Error fetching courses:', error);
+          setCollegeCourses([]);
+        } finally {
+          setLoadingCourses(false);
+        }
+      }
+    };
+
+    fetchCollegeCourses();
+  }, [activeCollege, activeTab]);
 
   const filteredColleges = collegesData.filter(college =>
     college.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -380,7 +455,8 @@ export default function Colleges() {
           <div className="mt-8 flex flex-wrap gap-3">
             <TabButton id="about" label="About Us" icon={Building2} />
             <TabButton id="program" label="Program Outline" icon={BookOpen} />
-            <TabButton id="courses" label="Courses" icon={GraduationCap} />
+            <TabButton id="programs" label="Degree Programs" icon={GraduationCap} />
+            <TabButton id="courses" label="Courses Catalog" icon={BookOpen} />
             <TabButton id="staff" label="Staff" icon={Users} />
             <TabButton id="announcements" label="Announcements" icon={Globe} />
             <TabButton id="community" label="Community" icon={Users} />
@@ -422,9 +498,9 @@ export default function Colleges() {
             </div>
           )}
 
-          {activeTab === "courses" && (
+          {activeTab === "programs" && (
             <div>
-              <h3 className="text-2xl font-bold mb-4">Available Programs</h3>
+              <h3 className="text-2xl font-bold mb-4">Degree Programs</h3>
               
               {/* Program Statistics Summary */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -505,6 +581,78 @@ export default function Colleges() {
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {activeTab === "courses" && (
+            <div>
+              <h3 className="text-2xl font-bold mb-4">Courses Catalog</h3>
+              <p className="text-gray-600 mb-6">
+                Browse individual courses offered by {activeCollege.name}
+              </p>
+
+              {loadingCourses ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600" />
+                </div>
+              ) : collegeCourses.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {collegeCourses.map((course) => (
+                    <Card key={course.id} className="overflow-hidden hover:shadow-xl transition-all duration-300">
+                      <div className="relative h-48 overflow-hidden">
+                        <img 
+                          src={getCourseCoverImage(course)} 
+                          alt={course.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-3 right-3">
+                          <Badge className="bg-blue-500 text-white">
+                            {course.level || 'Bachelor'}
+                          </Badge>
+                        </div>
+                        <div className="absolute bottom-3 left-3">
+                          <Badge className="bg-white/90 text-gray-900 font-semibold">
+                            {course.code}
+                          </Badge>
+                        </div>
+                      </div>
+                      <CardContent className="p-5">
+                        <h4 className="font-bold text-gray-900 mb-2 line-clamp-2">
+                          {course.title}
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                          {course.description || course.category}
+                        </p>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                          <div className="flex items-center gap-1">
+                            <BookOpen className="w-4 h-4" />
+                            <span>{course.credits} Credits</span>
+                          </div>
+                          {course.startDate && (
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              <span>{new Date(course.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                            </div>
+                          )}
+                        </div>
+                        <Button className="w-full" size="sm">
+                          View Details
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card className="border-2 border-dashed">
+                  <CardContent className="p-12 text-center">
+                    <BookOpen className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                    <h4 className="font-semibold text-lg mb-2">No Courses Available</h4>
+                    <p className="text-gray-600">
+                      There are currently no courses listed for this college.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
 

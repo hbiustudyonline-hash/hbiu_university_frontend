@@ -252,7 +252,249 @@ export const base44 = {
     Course: {
       list: (sort = '-created_at', limit = 100) => {
         if (MOCK_MODE) {
-          return Promise.resolve([]);
+          // Mock courses for various colleges
+          const mockCourses = [
+            // College of International Studies
+            {
+              id: 1,
+              code: 'IS301',
+              title: 'Intelligence, Security & Cyber Diplomacy',
+              description: 'Comprehensive study of intelligence operations, cybersecurity threats, and diplomatic strategies in the digital age.',
+              category: 'Security Studies',
+              level: 'Master',
+              credits: 3,
+              startDate: '2024-09-01',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: 2,
+              code: 'IS202',
+              title: 'Global Economics & Strategic Trade',
+              description: 'Analysis of international trade patterns, economic policy, and the intersection of global markets with ethical considerations.',
+              category: 'Economics',
+              level: 'Bachelor',
+              credits: 3,
+              startDate: '2024-09-15',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: 3,
+              code: 'IS401',
+              title: 'International Financial Crisis Management',
+              description: 'Advanced course examining global financial crises, regulatory frameworks, and crisis response strategies.',
+              category: 'Finance',
+              level: 'Master',
+              credits: 4,
+              startDate: '2024-10-01',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: 4,
+              code: 'IS105',
+              title: 'Global Supply Chain Management',
+              description: 'Introduction to international logistics, supply chain optimization, and cross-border trade operations.',
+              category: 'Business',
+              level: 'Bachelor',
+              credits: 3,
+              startDate: '2024-09-20',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: 5,
+              code: 'IS220',
+              title: 'Linear Algebra for International Studies',
+              description: 'Mathematical foundations including linear systems, matrices, and applications in international data analysis.',
+              category: 'Mathematics',
+              level: 'Bachelor',
+              credits: 4,
+              startDate: '2024-09-10',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: 6,
+              code: 'IS350',
+              title: 'Global Media & Communication',
+              description: 'Study of international media systems, cross-cultural communication, and digital diplomacy strategies.',
+              category: 'Communication',
+              level: 'Master',
+              credits: 3,
+              startDate: '2024-10-15',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: 7,
+              code: 'IS410',
+              title: 'Ethnographic Research Methods',
+              description: 'Advanced qualitative research techniques for studying cultures, societies, and international communities.',
+              category: 'Research',
+              level: 'PhD',
+              credits: 4,
+              startDate: '2024-09-25',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: 8,
+              code: 'IS180',
+              title: 'International Environmental Policy',
+              description: 'Examination of global environmental challenges, climate diplomacy, and sustainable development frameworks.',
+              category: 'Environmental',
+              level: 'Bachelor',
+              credits: 3,
+              startDate: '2024-10-05',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: 9,
+              code: 'IS260',
+              title: 'Global Tourism & Hospitality Management',
+              description: 'Comprehensive overview of international tourism industry, hospitality operations, and cultural tourism.',
+              category: 'Tourism',
+              level: 'Bachelor',
+              credits: 3,
+              startDate: '2024-09-18',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: 10,
+              code: 'IS315',
+              title: 'Event & Convention Management',
+              description: 'Planning and execution of international events, conventions, and cross-cultural gatherings.',
+              category: 'Event Management',
+              level: 'Bachelor',
+              credits: 3,
+              startDate: '2024-10-10',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: 11,
+              code: 'IS420',
+              title: 'Advanced Research Methodology',
+              description: 'Comprehensive training in quantitative and qualitative research methods for international studies.',
+              category: 'Research',
+              level: 'PhD',
+              credits: 4,
+              startDate: '2024-09-30',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: 12,
+              code: 'IS275',
+              title: 'Migration & Diaspora Policy',
+              description: 'Analysis of global migration patterns, refugee policies, and diaspora community dynamics.',
+              category: 'Policy',
+              level: 'Master',
+              credits: 3,
+              startDate: '2024-10-20',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: 13,
+              code: 'IS190',
+              title: 'Christian Theology & Global Ethics',
+              description: 'Exploration of Christian theological perspectives on international affairs and global ethical issues.',
+              category: 'Theology',
+              level: 'Bachelor',
+              credits: 3,
+              startDate: '2024-09-22',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: 14,
+              code: 'IS380',
+              title: 'Political Inquiry & Comparative Politics',
+              description: 'Systematic study of political systems, governance structures, and comparative political analysis.',
+              category: 'Political Science',
+              level: 'Master',
+              credits: 3,
+              startDate: '2024-10-12',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: 15,
+              code: 'IS295',
+              title: 'Cruise & Resort Operations',
+              description: 'Management principles for international cruise lines and resort hospitality operations.',
+              category: 'Tourism',
+              level: 'Bachelor',
+              credits: 3,
+              startDate: '2024-09-28',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            
+            // College of Nursing
+            {
+              id: 101,
+              code: 'NUR201',
+              title: 'Fundamentals of Nursing Practice',
+              description: 'Core nursing skills, patient care techniques, and professional nursing standards.',
+              category: 'Nursing Practice',
+              level: 'Bachelor',
+              credits: 4,
+              startDate: '2024-09-01',
+              college: { id: 2, name: 'College of Nursing' }
+            },
+            {
+              id: 102,
+              code: 'NUR310',
+              title: 'Advanced Health Assessment',
+              description: 'Comprehensive patient assessment techniques, diagnostic reasoning, and clinical decision-making.',
+              category: 'Clinical Skills',
+              level: 'Master',
+              credits: 3,
+              startDate: '2024-09-15',
+              college: { id: 2, name: 'College of Nursing' }
+            },
+            
+            // College of Business Administration
+            {
+              id: 201,
+              code: 'BUS101',
+              title: 'Introduction to Business Management',
+              description: 'Foundational concepts in business operations, management principles, and organizational behavior.',
+              category: 'Management',
+              level: 'Bachelor',
+              credits: 3,
+              startDate: '2024-09-01',
+              college: { id: 3, name: 'College of Business Administration' }
+            },
+            {
+              id: 202,
+              code: 'BUS305',
+              title: 'Strategic Marketing',
+              description: 'Advanced marketing strategies, consumer behavior analysis, and brand management.',
+              category: 'Marketing',
+              level: 'Master',
+              credits: 3,
+              startDate: '2024-09-20',
+              college: { id: 3, name: 'College of Business Administration' }
+            },
+            
+            // College of Engineering
+            {
+              id: 301,
+              code: 'ENG105',
+              title: 'Engineering Design & Innovation',
+              description: 'Introduction to engineering design process, problem-solving, and innovative thinking.',
+              category: 'Engineering',
+              level: 'Bachelor',
+              credits: 4,
+              startDate: '2024-09-01',
+              college: { id: 4, name: 'College of Engineering' }
+            },
+            {
+              id: 302,
+              code: 'ENG420',
+              title: 'Advanced Systems Engineering',
+              description: 'Complex systems analysis, integration techniques, and large-scale project management.',
+              category: 'Systems',
+              level: 'PhD',
+              credits: 4,
+              startDate: '2024-10-01',
+              college: { id: 4, name: 'College of Engineering' }
+            }
+          ];
+          
+          return Promise.resolve(mockCourses);
         }
         return apiRequest(`/courses`);
       },
