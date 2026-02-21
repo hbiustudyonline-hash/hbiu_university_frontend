@@ -276,7 +276,7 @@ export const base44 = {
       list: (sort = '-created_at', limit = 100) => {
         if (MOCK_MODE) {
           // Convert courses from courses.json to match the expected format
-          const formattedCourses = coursesData.courses.slice(0, 500).map((course, index) => ({
+          const formattedCourses = coursesData.courses.map((course, index) => ({
             id: index + 1,
             code: course.code,
             title: course.title,
@@ -291,6 +291,9 @@ export const base44 = {
               name: normalizeCollegeName(course.college)
             }
           }));
+          
+          console.log('[Course.list] Total courses loaded:', formattedCourses.length);
+          console.log('[Course.list] Sample colleges:', [...new Set(formattedCourses.map(c => c.college.name))].slice(0, 10));
           
           return Promise.resolve(formattedCourses);
         }

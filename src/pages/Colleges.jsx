@@ -286,10 +286,19 @@ export default function Colleges() {
         try {
           // Fetch courses for this college from API
           const response = await base44.Course.list();
+          console.log('[Colleges] Fetched courses:', response.length);
+          console.log('[Colleges] Looking for college:', activeCollege.name);
+          
           // Filter courses by college name (you can also use collegeId if available)
           const filtered = response.filter(course => 
             course.college && course.college.name === activeCollege.name
           );
+          
+          console.log('[Colleges] Filtered courses for', activeCollege.name, ':', filtered.length);
+          if (filtered.length === 0 && response.length > 0) {
+            console.log('[Colleges] Sample course college names:', response.slice(0, 5).map(c => c.college?.name));
+          }
+          
           setCollegeCourses(filtered);
         } catch (error) {
           console.error('Error fetching courses:', error);
