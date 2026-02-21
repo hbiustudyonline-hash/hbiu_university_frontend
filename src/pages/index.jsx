@@ -5,6 +5,7 @@ import DashboardSimple from "./DashboardSimple";
 import AdminDashboard from "./AdminDashboard";
 import LecturerDashboard from "./LecturerDashboard";
 import CourseDetail from "./CourseDetail";
+import EnrollmentDashboard from "./EnrollmentDashboard";
 // import CollegeAdminDashboard from "./CollegeAdminDashboard"; // Temporarily disabled
 import LoginTest from "./LoginTest";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -74,7 +75,23 @@ export default function Pages() {
           path="/student-dashboard" 
           element={
             <ProtectedRoute allowedRoles={['student', 'admin']}>
-              <DashboardSimple />
+              <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/enrollmentdashboard" 
+          element={
+            <ProtectedRoute allowedRoles={['student', 'admin']}>
+              <EnrollmentDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/enrollment" 
+          element={
+            <ProtectedRoute allowedRoles={['student', 'admin']}>
+              <EnrollmentDashboard />
             </ProtectedRoute>
           } 
         />

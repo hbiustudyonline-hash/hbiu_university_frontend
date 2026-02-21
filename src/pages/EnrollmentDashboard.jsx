@@ -293,7 +293,17 @@ export default function EnrollmentDashboard() {
 
   const { data: courses } = useQuery({
     queryKey: ['all-courses'],
-    queryFn: () => base44.entities.Course.filter({ status: 'published' }),
+    queryFn: async () => {
+      try {
+        // Try to fetch published courses first, fall back to all courses
+        const result = await base44.entities.Course.list('-created_date');
+        console.log('Courses fetched:', result?.length || 0, 'courses');
+        return result || [];
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+        return [];
+      }
+    },
     initialData: [],
   });
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import AppLayout from "@/components/AppLayout";
+import Layout from "@/Layout";
 import {
   Users,
   BookOpen,
@@ -37,16 +37,16 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <AppLayout>
+    <Layout currentPageName="AdminDashboard">
       <div className="p-4 md:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8 md:p-12 shadow-2xl">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#012759] via-[#1a3a6e] to-[#fca31c] p-8 md:p-12 shadow-2xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl -mr-32 -mt-32" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl -ml-24 -mb-24" />
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-xl">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#fca31c] to-[#012759] rounded-2xl flex items-center justify-center shadow-xl">
                 <Shield className="w-8 h-8 text-white" />
               </div>
               <div>
@@ -82,19 +82,19 @@ export default function AdminDashboard() {
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-white shadow-md rounded-xl p-2">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
+            <TabsTrigger value="overview" className="flex items-center gap-2 data-[state=active]:bg-[#012759] data-[state=active]:text-white">
               <Activity className="w-4 h-4" />
               <span className="hidden sm:inline">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
+            <TabsTrigger value="users" className="flex items-center gap-2 data-[state=active]:bg-[#012759] data-[state=active]:text-white">
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Users</span>
             </TabsTrigger>
-            <TabsTrigger value="courses" className="flex items-center gap-2">
+            <TabsTrigger value="courses" className="flex items-center gap-2 data-[state=active]:bg-[#012759] data-[state=active]:text-white">
               <BookOpen className="w-4 h-4" />
               <span className="hidden sm:inline">Courses</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <TabsTrigger value="analytics" className="flex items-center gap-2 data-[state=active]:bg-[#012759] data-[state=active]:text-white">
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
@@ -277,6 +277,6 @@ export default function AdminDashboard() {
         </Tabs>
         </div>
       </div>
-    </AppLayout>
+    </Layout>
   );
 }

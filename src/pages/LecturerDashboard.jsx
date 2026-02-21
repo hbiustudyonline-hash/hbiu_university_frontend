@@ -89,7 +89,7 @@ export default function LecturerDashboard() {
       <div className="p-4 md:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-8 md:p-12 shadow-2xl">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#012759] via-[#012759] to-[#fca31c] p-8 md:p-12 shadow-2xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24" />
           <div className="relative z-10">

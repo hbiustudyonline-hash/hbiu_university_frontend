@@ -9,6 +9,7 @@ import { createPageUrl } from "@/utils";
 import { useAuth } from "@/hooks/useAuth";
 import LoginModal from "@/components/LoginModal";
 import CourseListings from "@/components/public/CourseListings";
+import HeroCarousel from "@/components/HeroCarousel";
 import { 
   GraduationCap, 
   BookOpen,
@@ -129,14 +130,14 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#f0f4ff] via-white to-[#fef8f0]">
       {/* Navigation */}
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo/Brand */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#012759] to-[#fca31c] rounded-xl flex items-center justify-center shadow-lg">
                 <GraduationCap className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -159,6 +160,12 @@ export default function Home() {
                 <BookOpen className="w-5 h-5" />
                 Courses
               </Link>
+              {isAuthenticated && user?.role === 'student' && (
+                <Link to={createPageUrl("EnrollmentDashboard")} className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium">
+                  <GraduationCap className="w-5 h-5" />
+                  Enrollment
+                </Link>
+              )}
               <Link to={createPageUrl("ProgramsCatalog")} className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium">
                 <Award className="w-5 h-5" />
                 Programs Catalog
@@ -192,13 +199,13 @@ export default function Home() {
                 <>
                   <Button 
                     onClick={handleLogin}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-[#012759] hover:bg-[#010a1f] text-white"
                   >
                     Login
                   </Button>
                   <Button 
                     onClick={handleLogin}
-                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                    className="bg-[#fca31c] hover:bg-[#e89a0f] text-black font-semibold"
                   >
                     Login
                   </Button>
@@ -209,46 +216,13 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section - Background Image */}
-      <section className="relative w-full bg-[#1a3f8f]">
-        {/* Full responsive image */}
-        <img 
-          src="/images/headerimg.jpeg" 
-          alt="HBI University Header"
-          className="w-full h-auto object-contain"
-          onError={(e) => {
-            e.target.style.display = 'none';
-            e.target.parentElement.style.minHeight = '700px';
-          }}
-        />
-        
-        {/* Buttons positioned absolutely over the image */}
-        <div className="absolute bottom-[22%] left-0 right-0">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-wrap gap-4">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-lg px-10 py-6 shadow-2xl font-semibold"
-                onClick={handleGetStarted}
-              >
-                {isAuthenticated && user ? 'Go to Dashboard' : 'Get Started Free'}
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              {!(isAuthenticated && user) && (
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="text-white border-2 border-white hover:bg-white/10 text-lg px-10 py-6 bg-black/20 backdrop-blur-sm"
-                  onClick={() => window.location.href = createPageUrl("Courses")}
-                >
-                  <Play className="w-5 h-5 mr-2" />
-                  Explore Courses
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Hero Carousel Section */}
+      <HeroCarousel 
+        isAuthenticated={isAuthenticated}
+        user={user}
+        onGetStarted={handleGetStarted}
+        onExploreCourses={() => window.location.href = createPageUrl("Courses")}
+      />
 
       {/* Stats Section */}
       <section className="py-12 bg-white">
@@ -256,7 +230,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#012759]/10 to-[#fca31c]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <stat.icon className="w-8 h-8 text-blue-600" />
                 </div>
                 <p className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</p>
@@ -271,7 +245,7 @@ export default function Home() {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <Badge className="mb-4 bg-purple-100 text-purple-700 border-purple-200 px-4 py-1">
+            <Badge className="mb-4 bg-[#fca31c]/20 text-[#012759] border-[#fca31c]/50 px-4 py-1 font-semibold">
               Why Choose Us
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -307,7 +281,7 @@ export default function Home() {
 
       {/* CTA Section */}
       <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#012759] via-[#1a3a6e] to-[#fca31c]" />
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
         
@@ -322,7 +296,7 @@ export default function Home() {
             <div className="flex flex-wrap gap-4 justify-center">
               <Button 
                 size="lg" 
-                className="bg-white text-blue-600 hover:bg-blue-50 text-lg px-8 py-6 shadow-xl"
+                className="bg-white text-[#012759] hover:bg-gray-100 text-lg px-8 py-6 shadow-xl font-semibold"
                 onClick={handleGetStarted}
               >
                 {user ? 'Go to Dashboard' : 'Get Started Free'}
@@ -363,7 +337,7 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#012759] to-[#fca31c] rounded-xl flex items-center justify-center">
                   <GraduationCap className="w-6 h-6 text-white" />
                 </div>
                 <div>

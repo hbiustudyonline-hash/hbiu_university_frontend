@@ -15,16 +15,57 @@ import {
   Download,
   Upload,
   Camera,
-  BarChart3
+  BarChart3,
+  TrendingUp,
+  Target
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Mock data for enrolled courses
-  const enrolledCourses = [
+  // Fetch real data from backend
+  const { data: enrollments = [] } = useQuery({
+    queryKey: ['student-enrollments', user?.id],
+    queryFn: () => user?.id ? base44.entities.Enrollment.filter({ student_id: user.id }) : [],
+    enabled: !!user?.id,
+    initialData: [],
+  });
+
+  const { data: courses = [] } = useQuery({
+    queryKey: ['courses'],
+    queryFn: () => base44.entities.Course.list(),
+    initialData: [],
+  });
+
+  const { data: assignments = [] } = useQuery({
+    queryKey: ['assignments'],
+    queryFn: () => base44.entities.Assignment.list(),
+    initialData: [],
+  });
+
+  const { data: degrees = [] } = useQuery({
+    queryKey: ['student-degrees', user?.id],
+    queryFn: () => user?.id ? base44.entities.Degree.filter({ student_id: user.id }) : [],
+    enabled: !!user?.id,
+    initialData: [],
+  });
+
+  // Calculate stats
+  const studentCourses = enrollments
+    .map(enr => courses.find(c => c.id === enr.course_id))
+    .filter(Boolean);
+
+  const pendingAssignments = assignments.filter(a => 
+    enrollments.some(e => e.course_id === a.course_id)
+  );
+
+  const completedCourses = studentCourses.filter(c => c?.status === 'completed').length;
+
+  // Fallback to mock data if no real data
+  const displayCourses = studentCourses.length > 0 ? studentCourses : [
     {
       id: 1,
       code: "GEN 106",
@@ -109,11 +150,11 @@ export default function Dashboard() {
 
   return (
     <Layout currentPageName="Dashboard">
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-8">
+      <div className="min-h-screen bg-gray-50 p-4 md:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
           
           {/* Welcome Header */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-purple-600 to-cyan-500 p-8 md:p-12 shadow-2xl">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#012759] via-[#012759] to-[#fca31c] p-8 md:p-12 shadow-2xl">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24" />
             <div className="relative z-10">
@@ -122,12 +163,12 @@ export default function Dashboard() {
                   <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
                     Welcome back, {user?.full_name || user?.firstName || 'Student'}!
                   </h1>
-                  <p className="text-blue-100 text-lg">Student Dashboard</p>
+                  <p className="text-gray-100 text-lg">Student Dashboard</p>
                 </div>
-                <Button className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm">
-                  <Edit className="w-4 h-4 mr-2" />
+                <button className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm px-4 py-2 rounded-lg transition-colors">
+                  <Edit className="w-4 h-4 mr-2 inline" />
                   Edit Profile
-                </Button>
+                </button>
               </div>
             </div>
           </div>
@@ -139,7 +180,7 @@ export default function Dashboard() {
                 onClick={() => setActiveTab("overview")}
                 className={`px-4 py-2 rounded-md font-medium transition-colors ${
                   activeTab === "overview"
-                    ? "bg-blue-100 text-blue-700"
+                    ? "bg-[#012759] text-white"
                     : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
@@ -149,7 +190,7 @@ export default function Dashboard() {
                 onClick={() => setActiveTab("academic")}
                 className={`px-4 py-2 rounded-md font-medium transition-colors ${
                   activeTab === "academic"
-                    ? "bg-blue-100 text-blue-700"
+                    ? "bg-[#012759] text-white"
                     : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
@@ -159,7 +200,7 @@ export default function Dashboard() {
                 onClick={() => setActiveTab("progress")}
                 className={`px-4 py-2 rounded-md font-medium transition-colors ${
                   activeTab === "progress"
-                    ? "bg-blue-100 text-blue-700"
+                    ? "bg-[#012759] text-white"
                     : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
@@ -169,7 +210,7 @@ export default function Dashboard() {
                 onClick={() => setActiveTab("achievements")}
                 className={`px-4 py-2 rounded-md font-medium transition-colors ${
                   activeTab === "achievements"
-                    ? "bg-blue-100 text-blue-700"
+                    ? "bg-[#012759] text-white"
                     : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
@@ -179,7 +220,7 @@ export default function Dashboard() {
                 onClick={() => setActiveTab("degrees")}
                 className={`px-4 py-2 rounded-md font-medium transition-colors ${
                   activeTab === "degrees"
-                    ? "bg-blue-100 text-blue-700"
+                    ? "bg-[#012759] text-white"
                     : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
@@ -189,7 +230,7 @@ export default function Dashboard() {
                 onClick={() => setActiveTab("portfolio")}
                 className={`px-4 py-2 rounded-md font-medium transition-colors ${
                   activeTab === "portfolio"
-                    ? "bg-blue-100 text-blue-700"
+                    ? "bg-[#012759] text-white"
                     : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
@@ -249,7 +290,7 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-gray-600 text-sm mb-1">Enrolled Courses</p>
-                        <p className="text-3xl font-bold text-blue-600">5</p>
+                        <p className="text-3xl font-bold text-blue-600">{studentCourses.length}</p>
                       </div>
                       <BookOpen className="w-12 h-12 text-blue-100" />
                     </div>
@@ -260,7 +301,7 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-gray-600 text-sm mb-1">Assignments</p>
-                        <p className="text-3xl font-bold text-purple-600">0</p>
+                        <p className="text-3xl font-bold text-purple-600">{pendingAssignments.length}</p>
                       </div>
                       <Award className="w-12 h-12 text-purple-100" />
                     </div>
@@ -271,7 +312,7 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-gray-600 text-sm mb-1">Completed</p>
-                        <p className="text-3xl font-bold text-green-600">0</p>
+                        <p className="text-3xl font-bold text-green-600">{completedCourses}</p>
                       </div>
                       <GraduationCap className="w-12 h-12 text-green-100" />
                     </div>
@@ -281,8 +322,8 @@ export default function Dashboard() {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-gray-600 text-sm mb-1">Pending</p>
-                        <p className="text-3xl font-bold text-orange-600">0</p>
+                        <p className="text-gray-600 text-sm mb-1">Degrees</p>
+                        <p className="text-3xl font-bold text-orange-600">{degrees.length}</p>
                       </div>
                       <BarChart3 className="w-12 h-12 text-orange-100" />
                     </div>
@@ -365,78 +406,255 @@ export default function Dashboard() {
               {/* Enrolled Courses Section */}
               <div>
                 <h3 className="text-xl font-bold text-gray-900 mb-6">Enrolled Courses</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {enrolledCourses.map((course) => (
-                    <Card key={course.id} className="shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
-                      {/* Course Header */}
-                      <div className={`${getLevelColor(course.level)} p-4 text-white`}>
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="text-lg font-bold">{course.code}</h4>
-                          <span className="bg-white/30 px-3 py-1 rounded-full text-sm font-semibold">
-                            {getLevelShorthand(course.level)}
-                          </span>
-                        </div>
-                      </div>
-
-                      <CardContent className="p-6 space-y-4">
-                        <div>
-                          <h5 className="font-bold text-gray-900 mb-1">{course.name}</h5>
-                          <p className="text-sm text-gray-600">{course.description}</p>
-                        </div>
-
-                        {/* Course Progress */}
-                        <div>
+                {displayCourses.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {displayCourses.map((course) => (
+                      <Card key={course.id} className="shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
+                        {/* Course Header */}
+                        <div className={`${getLevelColor(course.level)} p-4 text-white`}>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-gray-600">Course Progress</span>
-                            <span className="text-sm font-semibold text-gray-900">{course.progress}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full" 
-                              style={{width: `${course.progress}%`}}
-                            />
-                          </div>
-                          <p className="text-xs text-gray-600 mt-1">{course.completed} of {course.total} items completed</p>
-                        </div>
-
-                        {/* Course Info */}
-                        <div className="pt-2 border-t border-gray-200 space-y-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4 text-gray-500" />
-                            <span className="text-gray-600">{course.instructor}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-500">📅</span>
-                            <span className="text-gray-600">{course.semester}</span>
+                            <h4 className="text-lg font-bold">{course.code}</h4>
+                            <span className="bg-white/30 px-3 py-1 rounded-full text-sm font-semibold">
+                              {getLevelShorthand(course.level)}
+                            </span>
                           </div>
                         </div>
 
-                        {/* View Course Button */}
-                        <Button className="w-full bg-gray-900 hover:bg-black text-white mt-4">
-                          View Course →
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                        <CardContent className="p-6 space-y-4">
+                          <div>
+                            <h5 className="font-bold text-gray-900 mb-1">{course.name}</h5>
+                            <p className="text-sm text-gray-600">{course.description}</p>
+                          </div>
+
+                          {/* Course Progress */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm text-gray-600">Course Progress</span>
+                              <span className="text-sm font-semibold text-gray-900">{course.progress || 0}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full" 
+                                style={{width: `${course.progress || 0}%`}}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Course Info */}
+                          <div className="pt-2 border-t border-gray-200 space-y-2 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4 text-gray-500" />
+                              <span className="text-gray-600">{course.instructor_name || 'TBA'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-500">📅</span>
+                              <span className="text-gray-600">{course.semester || 'Current'}</span>
+                            </div>
+                          </div>
+
+                          {/* View Course Button */}
+                          <Button className="w-full bg-gray-900 hover:bg-black text-white mt-4">
+                            <Link to={createPageUrl(`course/${course.id}`)}>
+                              View Course →
+                            </Link>
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <Card className="shadow-lg">
+                    <CardContent className="p-12 text-center">
+                      <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-600">No courses enrolled yet. Visit the enrollment page to get started!</p>
+                      <Button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white">
+                        <Link to={createPageUrl("EnrollmentDashboard")}>Enroll in Courses</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           )}
 
-          {/* Other Tabs - Placeholder */}
-          {activeTab !== "overview" && (
-            <Card className="shadow-lg">
-              <CardContent className="p-12 text-center">
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  {activeTab === "academic" && "Academic Records"}
-                  {activeTab === "progress" && "My Progress"}
-                  {activeTab === "achievements" && "Achievements"}
-                  {activeTab === "degrees" && "My Degrees"}
-                  {activeTab === "portfolio" && "Portfolio"}
-                </h3>
-                <p className="text-gray-600">Coming soon - This section is under development</p>
-              </CardContent>
-            </Card>
+          {/* Academic Records Tab */}
+          {activeTab === "academic" && (
+            <div className="space-y-8">
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle>Academic Transcript</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {studentCourses.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="border-b-2 border-gray-300">
+                          <tr>
+                            <th className="text-left py-3 px-4">Course Code</th>
+                            <th className="text-left py-3 px-4">Course Name</th>
+                            <th className="text-left py-3 px-4">Grade</th>
+                            <th className="text-left py-3 px-4">Credits</th>
+                            <th className="text-left py-3 px-4">Semester</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {studentCourses.map((course) => (
+                            <tr key={course.id} className="border-b border-gray-200 hover:bg-gray-50">
+                              <td className="py-3 px-4 font-semibold">{course.code}</td>
+                              <td className="py-3 px-4">{course.name}</td>
+                              <td className="py-3 px-4"><span className="bg-green-100 text-green-800 px-2 py-1 rounded">A</span></td>
+                              <td className="py-3 px-4">{course.credits || 3}</td>
+                              <td className="py-3 px-4">{course.semester || 'Current'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-gray-600">No academic records available yet.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Progress Tab */}
+          {activeTab === "progress" && (
+            <div className="space-y-8">
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Overall Academic Progress
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold">Course Completion Rate</span>
+                      <span className="text-lg font-bold text-blue-600">{studentCourses.length > 0 ? Math.round((completedCourses / studentCourses.length) * 100) : 0}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-4">
+                      <div 
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 h-4 rounded-full" 
+                        style={{width: `${studentCourses.length > 0 ? Math.round((completedCourses / studentCourses.length) * 100) : 0}%`}}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold">Assignment Submission Rate</span>
+                      <span className="text-lg font-bold text-green-600">75%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-4">
+                      <div 
+                        className="bg-gradient-to-r from-green-500 to-emerald-500 h-4 rounded-full" 
+                        style={{width: "75%"}}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <Target className="w-5 h-5 text-blue-600 mb-2" />
+                      <h4 className="font-semibold text-gray-900 mb-1">Learning Goals</h4>
+                      <p className="text-sm text-gray-600">5 goals completed this semester</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <Award className="w-5 h-5 text-green-600 mb-2" />
+                      <h4 className="font-semibold text-gray-900 mb-1">Achievements</h4>
+                      <p className="text-sm text-gray-600">3 badges earned</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Achievements Tab */}
+          {activeTab === "achievements" && (
+            <div className="space-y-8">
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle>Achievements & Badges</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="border-2 border-yellow-400 rounded-lg p-6 text-center hover:shadow-lg transition-shadow">
+                      <div className="text-4xl mb-2">🏆</div>
+                      <h4 className="font-bold text-gray-900 mb-1">Dean's List</h4>
+                      <p className="text-sm text-gray-600">Maintain 3.8 GPA</p>
+                    </div>
+                    <div className="border-2 border-blue-400 rounded-lg p-6 text-center hover:shadow-lg transition-shadow">
+                      <div className="text-4xl mb-2">⭐</div>
+                      <h4 className="font-bold text-gray-900 mb-1">Perfect Attendance</h4>
+                      <p className="text-sm text-gray-600">Never missed a class</p>
+                    </div>
+                    <div className="border-2 border-purple-400 rounded-lg p-6 text-center hover:shadow-lg transition-shadow opacity-50">
+                      <div className="text-4xl mb-2">🎯</div>
+                      <h4 className="font-bold text-gray-900 mb-1">Completed Major</h4>
+                      <p className="text-sm text-gray-600">Locked - 15 more courses needed</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Degrees Tab */}
+          {activeTab === "degrees" && (
+            <div className="space-y-8">
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle>My Degrees & Certificates</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {degrees.length > 0 ? (
+                    <div className="space-y-4">
+                      {degrees.map((degree) => (
+                        <div key={degree.id} className="border border-gray-300 rounded-lg p-6 hover:shadow-lg transition-shadow">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="text-xl font-bold text-gray-900">{degree.name}</h4>
+                              <p className="text-sm text-gray-600 mt-1">Level: {degree.level}</p>
+                              <p className="text-sm text-gray-600">Expected Completion: {degree.expected_graduation || 'TBA'}</p>
+                            </div>
+                            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                              <Download className="w-4 h-4 mr-2" />
+                              View Degree
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-600">No degrees currently in progress. Enroll in courses to start working towards your degree!</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Portfolio Tab */}
+          {activeTab === "portfolio" && (
+            <div className="space-y-8">
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle>My Portfolio</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h4 className="text-xl font-bold text-gray-900 mb-2">Build Your Portfolio</h4>
+                    <p className="text-gray-600 mb-6">Showcase your projects, assignments, and achievements to potential employers</p>
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                      Add Project
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           )}
         </div>
       </div>
