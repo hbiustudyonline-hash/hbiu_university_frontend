@@ -292,10 +292,91 @@ export const base44 = {
             }
           }));
           
-          console.log('[Course.list] Total courses loaded:', formattedCourses.length);
-          console.log('[Course.list] Sample colleges:', [...new Set(formattedCourses.map(c => c.college.name))].slice(0, 10));
+          // Add courses for colleges not in courses.json
+          const additionalCourses = [
+            // College of International Studies
+            {
+              id: formattedCourses.length + 1,
+              code: 'IRD 358',
+              title: 'Intelligence & Foreign Policy',
+              description: 'Comprehensive study of intelligence operations and foreign policy strategies.',
+              category: 'Intelligence Studies',
+              level: 'Bachelor',
+              credits: 3,
+              startDate: '2025-09-01',
+              thumbnail: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: formattedCourses.length + 2,
+              code: 'IRD 356',
+              title: 'International Trade Policy',
+              description: 'Analysis of international trade patterns and policy frameworks.',
+              category: 'Economics',
+              level: 'Bachelor',
+              credits: 3,
+              startDate: '2025-09-01',
+              thumbnail: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            {
+              id: formattedCourses.length + 3,
+              code: 'GTE 359',
+              title: 'Global Financial Crises',
+              description: 'Examination of global financial crises and crisis management strategies.',
+              category: 'Finance',
+              level: 'Bachelor',
+              credits: 3,
+              startDate: '2025-09-01',
+              thumbnail: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80',
+              college: { id: 1, name: 'College of International Studies' }
+            },
+            // College of Aviation
+            {
+              id: formattedCourses.length + 4,
+              code: 'AVN 101',
+              title: 'Introduction to Aviation',
+              description: 'Fundamentals of aviation including flight principles and aircraft systems.',
+              category: 'Aviation Fundamentals',
+              level: 'Bachelor',
+              credits: 3,
+              startDate: '2025-09-01',
+              thumbnail: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80',
+              college: { id: 2, name: 'College of Aviation' }
+            },
+            {
+              id: formattedCourses.length + 5,
+              code: 'AVN 250',
+              title: 'Aircraft Operations',
+              description: 'Aircraft operations, maintenance procedures, and safety protocols.',
+              category: 'Operations',
+              level: 'Bachelor',
+              credits: 4,
+              startDate: '2025-09-01',
+              thumbnail: 'https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=800&q=80',
+              college: { id: 2, name: 'College of Aviation' }
+            },
+            // College of Nursing (Note: courses.json doesn't have this college)
+            {
+              id: formattedCourses.length + 6,
+              code: 'NUR 201',
+              title: 'Fundamentals of Nursing',
+              description: 'Core nursing skills, patient care techniques, and professional standards.',
+              category: 'Nursing Practice',
+              level: 'Bachelor',
+              credits: 4,
+              startDate: '2025-09-01',
+              thumbnail: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80',
+              college: { id: 3, name: 'College of Nursing' }
+            }
+          ];
           
-          return Promise.resolve(formattedCourses);
+          const allCourses = [...formattedCourses, ...additionalCourses];
+          
+          console.log('[Course.list] Total courses loaded:', allCourses.length);
+          console.log('[Course.list] Sample colleges:', [...new Set(allCourses.map(c => c.college.name))].slice(0, 10));
+          
+          return Promise.resolve(allCourses);
         }
         return apiRequest(`/courses`);
       },
