@@ -492,9 +492,180 @@ export default function Colleges() {
           )}
 
           {activeTab === "program" && (
-            <div className="prose max-w-none">
-              <h3 className="text-2xl font-bold mb-4">Program Outline</h3>
-              <p className="text-gray-700 leading-relaxed">{activeCollege.programOutline}</p>
+            <div>
+              <h3 className="text-2xl font-bold mb-6">Program Outline</h3>
+              <p className="text-gray-700 leading-relaxed mb-8">{activeCollege.programOutline}</p>
+              
+              {/* Academic Levels Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {['Bachelor', 'Master', 'PhD', 'Doctorate'].map(level => {
+                  const programCount = activeCollege.courses.filter(c => c.level === level).length;
+                  if (programCount === 0) return null;
+                  
+                  return (
+                    <Card key={level} className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
+                      <CardContent className="p-6">
+                        <GraduationCap className={`w-10 h-10 mb-3 ${
+                          level === 'PhD' || level === 'Doctorate' ? 'text-green-600' :
+                          level === 'Master' ? 'text-purple-600' :
+                          'text-blue-600'
+                        }`} />
+                        <h4 className="font-bold text-lg mb-2">{level} Level</h4>
+                        <p className="text-sm text-gray-600 mb-2">{programCount} Programs Available</p>
+                        <div className="text-xs text-gray-500">
+                          {level === 'Bachelor' && '4 Years • 120-135 Credits'}
+                          {level === 'Master' && '2 Years • 60-79 Credits'}
+                          {level === 'PhD' && '4 Years • 90-103 Credits'}
+                          {level === 'Doctorate' && '3-4 Years • 96-105 Credits'}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {/* Curriculum Structure */}
+              <div className="grid md:grid-cols-2 gap-6 mb-8">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <BookOpen className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <h4 className="font-bold text-lg">Core Curriculum</h4>
+                    </div>
+                    <ul className="space-y-2 text-gray-700">
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
+                        <span>Foundation courses in discipline fundamentals</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
+                        <span>Research methodology and academic writing</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
+                        <span>Critical thinking and analysis</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
+                        <span>Ethics and professional practice</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <Award className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <h4 className="font-bold text-lg">Specialization</h4>
+                    </div>
+                    <ul className="space-y-2 text-gray-700">
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mt-2"></div>
+                        <span>Advanced coursework in chosen field</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mt-2"></div>
+                        <span>Optional minor concentrations</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mt-2"></div>
+                        <span>Elective courses for customization</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mt-2"></div>
+                        <span>Interdisciplinary study options</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <Users className="w-6 h-6 text-green-600" />
+                      </div>
+                      <h4 className="font-bold text-lg">Practical Experience</h4>
+                    </div>
+                    <ul className="space-y-2 text-gray-700">
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2"></div>
+                        <span>Internship and field placement opportunities</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2"></div>
+                        <span>Hands-on project work</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2"></div>
+                        <span>Industry partnerships and collaboration</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2"></div>
+                        <span>Professional development workshops</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <GraduationCap className="w-6 h-6 text-orange-600" />
+                      </div>
+                      <h4 className="font-bold text-lg">Capstone & Thesis</h4>
+                    </div>
+                    <ul className="space-y-2 text-gray-700">
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mt-2"></div>
+                        <span>Original research projects</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mt-2"></div>
+                        <span>Comprehensive examinations</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mt-2"></div>
+                        <span>Thesis or dissertation defense</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mt-2"></div>
+                        <span>Portfolio and presentation requirements</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Learning Approach */}
+              <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
+                <CardContent className="p-6">
+                  <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
+                    <Globe className="w-6 h-6 text-blue-600" />
+                    Our Learning Approach
+                  </h4>
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div>
+                      <h5 className="font-semibold mb-2 text-blue-900">Interdisciplinary</h5>
+                      <p className="text-sm text-gray-700">Integration of multiple fields of study for comprehensive understanding and innovative problem-solving.</p>
+                    </div>
+                    <div>
+                      <h5 className="font-semibold mb-2 text-purple-900">Faith-Informed</h5>
+                      <p className="text-sm text-gray-700">Ethical frameworks rooted in religious perspectives guide academic inquiry and professional practice.</p>
+                    </div>
+                    <div>
+                      <h5 className="font-semibold mb-2 text-indigo-900">Globally Focused</h5>
+                      <p className="text-sm text-gray-700">International perspectives and cross-cultural competencies prepare students for global leadership.</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
