@@ -670,6 +670,80 @@ export const base44 = {
         }
         return apiRequest(`/submissions`);
       }
+    },
+    AIInstructor: {
+      list: () => {
+        if (MOCK_MODE) {
+          const mockAIInstructors = JSON.parse(localStorage.getItem('mockAIInstructors') || '[]');
+          return Promise.resolve(mockAIInstructors);
+        }
+        return apiRequest('/ai-instructors');
+      },
+      filter: (filters) => {
+        if (MOCK_MODE) {
+          const mockAIInstructors = JSON.parse(localStorage.getItem('mockAIInstructors') || '[]');
+          const filtered = mockAIInstructors.filter(instructor => 
+            (!filters.course_id || instructor.course_id == filters.course_id)
+          );
+          return Promise.resolve(filtered);
+        }
+        return apiRequest('/ai-instructors/filter', {
+          method: 'POST',
+          body: JSON.stringify(filters),
+        });
+      },
+      create: (data) => {
+        if (MOCK_MODE) {
+          const mockAIInstructors = JSON.parse(localStorage.getItem('mockAIInstructors') || '[]');
+          const newInstructor = {
+            id: mockAIInstructors.length + 1,
+            ...data,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          mockAIInstructors.push(newInstructor);
+          localStorage.setItem('mockAIInstructors', JSON.stringify(mockAIInstructors));
+          console.log('✅ Mock AI Instructor created:', newInstructor);
+          return Promise.resolve(newInstructor);
+        }
+        return apiRequest('/ai-instructors', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+      },
+      update: (id, data) => {
+        if (MOCK_MODE) {
+          const mockAIInstructors = JSON.parse(localStorage.getItem('mockAIInstructors') || '[]');
+          const index = mockAIInstructors.findIndex(i => i.id == id);
+          if (index !== -1) {
+            mockAIInstructors[index] = {
+              ...mockAIInstructors[index],
+              ...data,
+              updated_at: new Date().toISOString()
+            };
+            localStorage.setItem('mockAIInstructors', JSON.stringify(mockAIInstructors));
+            console.log('✅ Mock AI Instructor updated:', mockAIInstructors[index]);
+            return Promise.resolve(mockAIInstructors[index]);
+          }
+          return Promise.reject(new Error('AI Instructor not found'));
+        }
+        return apiRequest(`/ai-instructors/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        });
+      },
+      delete: (id) => {
+        if (MOCK_MODE) {
+          const mockAIInstructors = JSON.parse(localStorage.getItem('mockAIInstructors') || '[]');
+          const filtered = mockAIInstructors.filter(i => i.id != id);
+          localStorage.setItem('mockAIInstructors', JSON.stringify(filtered));
+          console.log('✅ Mock AI Instructor deleted:', id);
+          return Promise.resolve({ success: true });
+        }
+        return apiRequest(`/ai-instructors/${id}`, {
+          method: 'DELETE',
+        });
+      }
     }
   }
 };

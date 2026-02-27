@@ -64,16 +64,46 @@ export default function AIInstructorPanel({ courseId, isInstructor }) {
   });
 
   const createInstructorMutation = useMutation({
-    mutationFn: (data) => base44.entities.AIInstructor.create({
-      ...data,
-      course_id: courseId,
-      active: true
-    }),
+    mutationFn: async (data) => {
+      try {
+        // Get current user for created_by field
+        const currentUser = await base44.auth.me();
+        
+        // Create instructor data
+        const instructorData = {
+          course_id: courseId,
+          name: data.name,
+          avatar_url: data.avatar_url || null,
+          title: data.title || 'Associate Professor',
+          specialization: data.specialization || '',
+          tone: data.tone || 'balanced_hybrid',
+          textbook_content: data.textbook_content,
+          syllabus: data.syllabus || '',
+          course_weeks: data.course_weeks || 10,
+          personality_traits: data.personality_traits || [],
+          is_active: true,
+          created_by: currentUser.id
+        };
+        
+        console.log('📤 Creating AI Instructor with data:', instructorData);
+        const result = await base44.entities.AIInstructor.create(instructorData);
+        console.log('✅ AI Instructor created:', result);
+        return result;
+      } catch (error) {
+        console.error('❌ Error creating AI Instructor:', error);
+        throw error;
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-instructor', courseId] });
       setShowCreateDialog(false);
       resetForm();
+      alert('✅ AI Instructor created successfully!');
     },
+    onError: (error) => {
+      console.error('❌ Mutation error:', error);
+      alert('❌ Failed to create AI Instructor: ' + (error.message || 'Unknown error'));
+    }
   });
 
   const updateInstructorMutation = useMutation({
@@ -180,27 +210,38 @@ export default function AIInstructorPanel({ courseId, isInstructor }) {
       return;
     }
 
-    // Check file size (5MB limit for images)
-    const maxSize = 5 * 1024 * 1024;
+    // Check file size (2MB limit for images - base64 will be larger)
+    const maxSize = 2 * 1024 * 1024;
     if (file.size > maxSize) {
-      alert('⚠️ Image size exceeds 5MB limit. Please use a smaller image.');
+      alert('⚠️ Image size exceeds 2MB limit. Please use a smaller image.');
       e.target.value = '';
       return;
     }
 
     setUploadingAvatar(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData(prev => ({ 
-        ...prev, 
-        avatar_url: file_url
-      }));
-      alert('✅ Avatar uploaded successfully!');
+      // Convert image to base64
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64Image = event.target.result;
+        setFormData(prev => ({ 
+          ...prev, 
+          avatar_url: base64Image
+        }));
+        setUploadingAvatar(false);
+        alert('✅ Avatar uploaded successfully!');
+      };
+      reader.onerror = () => {
+        console.error('Error reading file');
+        alert('⚠️ Error uploading avatar. Please try again.');
+        setUploadingAvatar(false);
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error('Avatar upload error:', error);
       alert('⚠️ Error uploading avatar. Please try again.');
-    } finally {
       setUploadingAvatar(false);
+    } finally {
       e.target.value = '';
     }
   };
@@ -572,7 +613,7 @@ export default function AIInstructorPanel({ courseId, isInstructor }) {
                 </Button>
                 <Button 
                   type="submit"
-                  disabled={!formData.name || !formData.textbook_content || !formData.avatar_url || createInstructorMutation.isPending || updateInstructorMutation.isPending}
+                  disabled={!formData.name || !formData.textbook_content || createInstructorMutation.isPending || updateInstructorMutation.isPending}
                 >
                   {aiInstructor ? 'Update Instructor' : 'Create Instructor'}
                 </Button>

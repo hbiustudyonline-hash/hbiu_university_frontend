@@ -266,7 +266,8 @@ export default function EnrollmentDashboard() {
   const [filters, setFilters] = useState({ // Consolidated search/filter state
     search: '',
     college: 'all',
-    program: 'all'
+    program: 'all',
+    semester: 'all'
   });
   const [activeTab, setActiveTab] = useState('courses'); // Changed default tab to 'courses' as per outline
   const [selectedSemester, setSelectedSemester] = useState('Fall 2024');
@@ -508,7 +509,8 @@ export default function EnrollmentDashboard() {
                          course.code.toLowerCase().includes(filters.search.toLowerCase());
     const matchesCollege = filters.college === 'all' || course.college_id === filters.college;
     const matchesProgram = filters.program === 'all' || course.program === filters.program;
-    return matchesSearch && matchesCollege && matchesProgram;
+    const matchesSemester = filters.semester === 'all' || course.semester === filters.semester;
+    return matchesSearch && matchesCollege && matchesProgram && matchesSemester;
   });
 
   const currentSemesterCount = (semester) => {
@@ -687,6 +689,11 @@ export default function EnrollmentDashboard() {
                             <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2 min-h-[3.5rem]">
                               {course.title}
                             </h3>
+                            {course.degree_program && (
+                              <p className="text-sm font-medium text-indigo-600 mb-2">
+                                {course.degree_program}
+                              </p>
+                            )}
                             <p className="text-sm text-gray-500 mb-4 line-clamp-2">
                               {course.description || 'No description available'}
                             </p>
@@ -697,7 +704,14 @@ export default function EnrollmentDashboard() {
                               </div>
                               <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <Calendar className="w-4 h-4" />
-                                {course.semester}
+                                <span className="flex items-center gap-2">
+                                  {course.semester}
+                                  {course.semester_label && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {course.semester_label}
+                                    </Badge>
+                                  )}
+                                </span>
                               </div>
                               {enrollment.grade && (
                                 <div className="flex items-center gap-2 text-sm">
@@ -754,7 +768,7 @@ export default function EnrollmentDashboard() {
             {/* Filters */}
             <Card className="border-none shadow-lg">
               <CardContent className="p-6">
-                <div className="grid md:grid-cols-4 gap-4">
+                <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div className="md:col-span-2">
                     <Label>Search Courses</Label>
                     <div className="relative mt-2">
@@ -796,6 +810,22 @@ export default function EnrollmentDashboard() {
                         <SelectItem value="Master">Master</SelectItem>
                         <SelectItem value="Doctorate">Doctorate</SelectItem>
                         <SelectItem value="PhD">PhD</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Filter by Semester</Label>
+                    <Select value={filters.semester} onValueChange={(value) => setFilters(prev => ({ ...prev, semester: value }))}>
+                      <SelectTrigger className="mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Semesters</SelectItem>
+                        {semesters.map(semester => (
+                          <SelectItem key={semester} value={semester}>
+                            {semester}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -868,6 +898,11 @@ export default function EnrollmentDashboard() {
                           <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2 min-h-[3.5rem]">
                             {course.title}
                           </h3>
+                          {course.degree_program && (
+                            <p className="text-sm font-medium text-indigo-600 mb-2">
+                              {course.degree_program}
+                            </p>
+                          )}
                           <p className="text-sm text-gray-500 mb-4 line-clamp-2">
                             {course.description || 'No description available'}
                           </p>
@@ -878,7 +913,14 @@ export default function EnrollmentDashboard() {
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <Calendar className="w-4 h-4" />
-                              {course.semester}
+                              <span className="flex items-center gap-2">
+                                {course.semester}
+                                {course.semester_label && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {course.semester_label}
+                                  </Badge>
+                                )}
+                              </span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <BookOpen className="w-4 h-4" />

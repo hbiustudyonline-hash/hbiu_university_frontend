@@ -108,7 +108,8 @@ export default function CourseDetail() {
     enabled: !!courseId && !!user,
   });
 
-  const isInstructor = user?.email === course?.instructor || user?.role === 'admin';
+  // Check if user is instructor - compare user ID with course lecturerId, or check if admin
+  const isInstructor = (user?.id === course?.lecturerId) || user?.role === 'admin';
   const isEnrolled = !!enrollment || isInstructor;
 
   if (isLoading) {
@@ -246,7 +247,7 @@ export default function CourseDetail() {
           
           <TabsContent value="calendar">
             {isEnrolled ? (
-              <CourseCalendar courseId={courseId} isInstructor={isInstructor} />
+              <CourseCalendar course={course} courseId={courseId} isInstructor={isInstructor} />
             ) : (
               <NotEnrolledMessage />
             )}
@@ -350,7 +351,7 @@ export default function CourseDetail() {
           
           <TabsContent value="oral-exam">
             {isEnrolled ? (
-              <CourseOralExam courseId={courseId} isInstructor={isInstructor} />
+              <CourseOralExam courseId={courseId} course={course} isInstructor={isInstructor} />
             ) : (
               <NotEnrolledMessage />
             )}
