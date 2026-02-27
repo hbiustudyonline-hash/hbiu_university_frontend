@@ -278,6 +278,16 @@ export default function Colleges() {
     return 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&q=80';
   };
 
+  // Helper function to normalize college names for comparison
+  const normalizeCollegeName = (name) => {
+    if (!name) return '';
+    return name
+      .replace(/[&,]/g, '') // Remove & and commas
+      .replace(/\s+/g, ' ')  // Normalize whitespace
+      .trim()
+      .toLowerCase();
+  };
+
   // Fetch courses when a college is selected
   useEffect(() => {
     const fetchCollegeCourses = async () => {
@@ -289,14 +299,23 @@ export default function Colleges() {
           console.log('[Colleges] Fetched courses:', response.length);
           console.log('[Colleges] Looking for college:', activeCollege.name);
           
-          // Filter courses by college name (you can also use collegeId if available)
-          const filtered = response.filter(course => 
-            course.college && course.college.name === activeCollege.name
-          );
+          // Normalize both college names for comparison to handle variations like:
+          // "College of Business & Economics" vs "College of Business Economics"
+          const normalizedActiveCollege = normalizeCollegeName(activeCollege.name);
+          console.log('[Colleges] Normalized college name:', normalizedActiveCollege);
+          
+          const filtered = response.filter(course => {
+            if (!course.college || !course.college.name) return false;
+            const normalizedCourseName = normalizeCollegeName(course.college.name);
+            return normalizedCourseName === normalizedActiveCollege;
+          });
           
           console.log('[Colleges] Filtered courses for', activeCollege.name, ':', filtered.length);
           if (filtered.length === 0 && response.length > 0) {
-            console.log('[Colleges] Sample course college names:', response.slice(0, 5).map(c => c.college?.name));
+            console.log('[Colleges] Sample course college names:', response.slice(0, 5).map(c => ({
+              original: c.college?.name,
+              normalized: normalizeCollegeName(c.college?.name)
+            })));
           }
           
           setCollegeCourses(filtered);

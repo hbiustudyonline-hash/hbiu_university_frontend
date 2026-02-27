@@ -55,32 +55,51 @@ const normalizeCollegeName = (collegeName) => {
 const getCollegeIdByName = (collegeName) => {
   const normalizedName = normalizeCollegeName(collegeName);
   const collegeMap = {
-    'College of Agriculture and Natural Resources': '1',
-    'College of Architecture, Arts and Design': '2',
-    'College of Arts and Humanities': '3',
-    'College of Aviation': '4',
-    'College of Business Economics': '5',
-    'College of Cosmetology': '6',
-    'College of Earth Science and Industrial Technologies': '7',
-    'College of Education and Human Development': '8',
-    'College of Health Sciences': '9',
-    'College of International Studies': '10',
-    'College of Law': '11',
-    'College of Media and Communications': '12',
-    'College of Medicine': '13',
-    'College of Nature': '14',
-    'College of Psychology': '15',
-    'College of Public Health': '16',
-    'College of Science and Engineering': '17',
-    'College of Tourism, Hospitality, Management': '18',
-    'HBIU College for Prior Learning': '19',
-    'HBIU College of Coaching': '20',
-    'HBIU College of Fashion Design': '21',
-    'HBIU Graduate School': '22',
-    'HBIU Seminary': '23',
-    'HBIU Training Institute': '24'
+    // Based on exact order from Colleges.jsx
+    'College of International Studies': '1', // id: 1
+    'College of Aviation': '2', // id: 2
+    'College of Chaplaincy': '3', // id: 3
+    'College of Naturopathic Medicine': '4', // id: 4
+    'College of Addiction Counseling': '5', // id: 5
+    'College of Agriculture and Natural Resources': '6', // id: 6
+    'College of Architecture Arts and Design': '7', // id: 7
+    'College of Arts and Humanities': '8', // id: 8
+    'College of Behavioral Social Science': '9', // id: 9
+    'College of Business Economics': '10', // id: 10
+    'College of Business and Project Management': '11', // id: 11
+    'College of Communication and Media': '12', // id: 12
+    'College of Computer Science': '13', // id: 13
+    'College of Earth Science and Industrial Technologies': '14', // id: 14
+    'College of Education and Human Development': '15', // id: 15
+    'College of Health Science': '16', // id: 16
+    'College of Law and Public Policy': '17', // id: 17
+    'College of Leadership': '18', // id: 18
+    'College of Performing Arts': '19', // id: 19
+    'College of Science and Engineering': '20', // id: 20
+    'College of Science and Psychology': '21', // id: 21
+    'College of Science and Social Science': '22', // id: 22
+    'College of Social Science and Humanitarianism': '23', // id: 23
+    'College of Tourism Hospitality Management': '24', // id: 24
+    'College of Virtual and Performing Arts': '25', // id: 25
+    'Culinary Institution College': '26', // id: 26
+    'HBIU College of Coaching': '27', // id: 27
+    'HBIU College of Fashion Design': '28', // id: 28
+    'HBIU College for Prior Learning': '29', // id: 29
+    'HBIU Medical Training Institute': '30', // id: 30
+    'HBIU Seminary': '31', // id: 31
+    'HBIU Training Institute': '32', // id: 32
+    'Certificate Courses': '33', // id: 33
+    'HBI Heart Royalty International Academy': '34', // id: 34
+    'College Preparatory High School': '35', // id: 35
+    'College of Cosmetology': '36', // id: 36
+    'College of Nature': '37' // id: 37
   };
-  return collegeMap[normalizedName] || '1'; // Default to college 1 if not found
+  
+  const mappedId = collegeMap[normalizedName];
+  if (!mappedId) {
+    console.warn('[getCollegeIdByName] No mapping found for:', normalizedName, '- Original name:', collegeName);
+  }
+  return mappedId || '1'; // Default to college 1 if not found
 };
 
 // LocalStorage-backed storage for mock mode created courses
@@ -330,7 +349,6 @@ export const base44 = {
           // Convert courses from courses.json to match the expected format
           const formattedCourses = coursesData.courses.map((course, index) => {
             // Get the proper college ID based on the course's original college name
-            const normalizedCollegeName = normalizeCollegeName(course.college);
             const collegeId = getCollegeIdByName(course.college);
             
             return {
@@ -350,7 +368,7 @@ export const base44 = {
               college_id: collegeId, // Use actual college ID from course data
               college: { 
                 id: collegeId, 
-                name: normalizedCollegeName
+                name: course.college // Keep original college name for display
               }
             };
           });
@@ -489,19 +507,41 @@ export const base44 = {
           const allCourses = await this.list(sort, limit);
           let filtered = allCourses;
           
+          console.log('[Course.filter] Starting filter. Total courses:', allCourses.length);
+          console.log('[Course.filter] Filters received:', JSON.stringify(filters));
+          
           if (filters) {
             filtered = allCourses.filter(course => {
-              return Object.entries(filters).every(([key, value]) => {
+              const matches = Object.entries(filters).every(([key, value]) => {
                 // Handle different comparison types
                 if (key === 'college_id') {
-                  return String(course.college_id) === String(value) || String(course.college?.id) === String(value);
+                  const courseCollegeId = String(course.college_id);
+                  const filterValue = String(value);
+                  const courseCollegeObjId = String(course.college?.id);
+                  const match = courseCollegeId === filterValue || courseCollegeObjId === filterValue;
+                  
+                  // Log first 3 comparisons for debugging
+                  if (filtered.length < 3) {
+                    console.log(`  Comparing: course.college_id="${courseCollegeId}" vs filter="${filterValue}" → ${match}`);
+                  }
+                  
+                  return match;
                 }
                 return String(course[key]) === String(value);
               });
+              return matches;
             });
           }
           
-          console.log('[Course.filter] Filters:', filters, 'Results:', filtered.length);
+          console.log('[Course.filter] ✅ Results:', filtered.length, 'courses found');
+          if (filtered.length > 0) {
+            console.log('[Course.filter] Sample:', filtered.slice(0, 3).map(c => ({
+              title: c.title,
+              college_id: c.college_id,
+              college_name: c.college?.name
+            })));
+          }
+          
           return Promise.resolve(filtered);
         }
         return apiRequest(`/courses/filter`, {
