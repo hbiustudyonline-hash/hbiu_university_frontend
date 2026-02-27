@@ -304,10 +304,15 @@ export const base44 = {
             category: course.title,
             level: course.program,
             credits: course.credits,
+            semester: course.semester || 'Fall 2025',
+            status: 'published',
+            instructor: 'john.smith@hbiu.edu', // Default instructor for existing courses
+            instructor_name: 'John Smith',
             startDate: course.semester === 'Semester 1' ? '2025-09-01' : '2026-01-15',
             thumbnail: course.image,
+            college_id: String((index % 24) + 1), // Store as string to match College IDs
             college: { 
-              id: index + 1, 
+              id: String((index % 24) + 1), 
               name: normalizeCollegeName(course.college)
             }
           }));
@@ -323,9 +328,14 @@ export const base44 = {
               category: 'Intelligence Studies',
               level: 'Bachelor',
               credits: 3,
+              semester: 'Fall 2025',
+              status: 'published',
+              instructor: 'john.smith@hbiu.edu',
+              instructor_name: 'John Smith',
               startDate: '2025-09-01',
               thumbnail: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80',
-              college: { id: 1, name: 'College of International Studies' }
+              college_id: '10',
+              college: { id: '10', name: 'College of International Studies' }
             },
             {
               id: formattedCourses.length + 2,
@@ -335,9 +345,14 @@ export const base44 = {
               category: 'Economics',
               level: 'Bachelor',
               credits: 3,
+              semester: 'Spring 2026',
+              status: 'published',
+              instructor: 'john.smith@hbiu.edu',
+              instructor_name: 'John Smith',
               startDate: '2025-09-01',
               thumbnail: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80',
-              college: { id: 1, name: 'College of International Studies' }
+              college_id: '10',
+              college: { id: '10', name: 'College of International Studies' }
             },
             {
               id: formattedCourses.length + 3,
@@ -347,9 +362,14 @@ export const base44 = {
               category: 'Finance',
               level: 'Bachelor',
               credits: 3,
+              semester: 'Fall 2025',
+              status: 'published',
+              instructor: 'john.smith@hbiu.edu',
+              instructor_name: 'John Smith',
               startDate: '2025-09-01',
               thumbnail: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80',
-              college: { id: 1, name: 'College of International Studies' }
+              college_id: '10',
+              college: { id: '10', name: 'College of International Studies' }
             },
             // College of Aviation
             {
@@ -360,9 +380,14 @@ export const base44 = {
               category: 'Aviation Fundamentals',
               level: 'Bachelor',
               credits: 3,
+              semester: 'Fall 2025',
+              status: 'published',
+              instructor: 'john.smith@hbiu.edu',
+              instructor_name: 'John Smith',
               startDate: '2025-09-01',
               thumbnail: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80',
-              college: { id: 2, name: 'College of Aviation' }
+              college_id: '4',
+              college: { id: '4', name: 'College of Aviation' }
             },
             {
               id: formattedCourses.length + 5,
@@ -372,11 +397,16 @@ export const base44 = {
               category: 'Operations',
               level: 'Bachelor',
               credits: 4,
+              semester: 'Spring 2026',
+              status: 'published',
+              instructor: 'john.smith@hbiu.edu',
+              instructor_name: 'John Smith',
               startDate: '2025-09-01',
               thumbnail: 'https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=800&q=80',
-              college: { id: 2, name: 'College of Aviation' }
+              college_id: '4',
+              college: { id: '4', name: 'College of Aviation' }
             },
-            // College of Nursing (Note: courses.json doesn't have this college)
+            // Health Sciences - Nursing courses
             {
               id: formattedCourses.length + 6,
               code: 'NUR 201',
@@ -385,9 +415,14 @@ export const base44 = {
               category: 'Nursing Practice',
               level: 'Bachelor',
               credits: 4,
+              semester: 'Fall 2025',
+              status: 'published',
+              instructor: 'john.smith@hbiu.edu',
+              instructor_name: 'John Smith',
               startDate: '2025-09-01',
               thumbnail: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80',
-              college: { id: 3, name: 'College of Nursing' }
+              college_id: '9',
+              college: { id: '9', name: 'College of Health Sciences' }
             }
           ];
           

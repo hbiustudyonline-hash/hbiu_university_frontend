@@ -124,7 +124,7 @@ export default function LecturerCourses({ courses = [], user, isAdmin }) {
       statusFilter === "All Status" || course.status === statusFilter;
     
     // Match by college name
-    const courseCampus = colleges.find(c => c.id === course.college_id);
+    const courseCampus = colleges.find(c => String(c.id) === String(course.college_id));
     const matchesCollege =
       collegeFilter === "All Colleges" || courseCampus?.name === collegeFilter;
     
@@ -340,7 +340,7 @@ export default function LecturerCourses({ courses = [], user, isAdmin }) {
 
               {/* Program & Details */}
               <p className="text-xs text-gray-600 mb-2 line-clamp-1">
-                {colleges.find(c => c.id === course.college_id)?.name || 'Unknown College'}
+                {colleges.find(c => String(c.id) === String(course.college_id))?.name || course.college?.name || 'Unknown College'}
               </p>
               <p className="text-xs text-gray-500 mb-4">
                 <span className="font-semibold text-gray-600">

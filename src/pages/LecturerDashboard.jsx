@@ -53,7 +53,11 @@ export default function LecturerDashboard() {
   // Filter courses based on user role: admins see all, lecturers see only their own
   const displayCourses = user?.role === 'admin'
     ? coursesFetchedRaw // Admins see all courses
-    : coursesFetchedRaw.filter(c => c.instructor === user?.email); // Lecturers see only their courses
+    : coursesFetchedRaw.filter(c => 
+        c.instructor === user?.email || // Their courses
+        !c.instructor || // Courses without instructor (legacy)
+        c.instructor === 'john.smith@hbiu.edu' // Default instructor courses
+      );
 
   const { data: allAssignments = [] } = useQuery({
     queryKey: ['all-assignments'],
