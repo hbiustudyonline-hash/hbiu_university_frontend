@@ -84,6 +84,14 @@ export default function CreateCourseDialog({ open, onClose, onSubmit, isLoading,
     college_name: ''
   });
 
+  // Debug: Log colleges when dialog opens
+  React.useEffect(() => {
+    if (open) {
+      console.log('CreateCourseDialog opened - Colleges:', colleges);
+      console.log('Colleges count:', colleges?.length || 0);
+    }
+  }, [open, colleges]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
@@ -162,17 +170,21 @@ export default function CreateCourseDialog({ open, onClose, onSubmit, isLoading,
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="college">College/Department *</Label>
+            <Label htmlFor="college">College/Department * ({colleges?.length || 0} colleges available)</Label>
             <Select value={formData.college_id} onValueChange={handleCollegeChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a college" />
               </SelectTrigger>
               <SelectContent>
-                {colleges?.map(college => (
-                  <SelectItem key={college.id} value={college.id}>
-                    {college.name}
-                  </SelectItem>
-                ))}
+                {!colleges || colleges.length === 0 ? (
+                  <div className="px-2 py-1.5 text-sm text-gray-500">No colleges available</div>
+                ) : (
+                  colleges.map(college => (
+                    <SelectItem key={college.id} value={college.id}>
+                      {college.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>

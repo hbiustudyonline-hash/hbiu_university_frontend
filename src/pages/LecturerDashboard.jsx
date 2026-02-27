@@ -40,14 +40,14 @@ export default function LecturerDashboard() {
 
   // Admin sees ALL courses, lecturers see only their own
   // This query now fetches all courses if the user is loaded.
-  const { data: coursesFetchedRaw } = useQuery({
+  const { data: coursesFetchedRaw = [] } = useQuery({
     queryKey: ['all-courses-for-dashboard'], // Generic key as this fetches all courses regardless of user role
     queryFn: () => {
       if (!user) return []; // Only fetch once user data is available
+      console.log('🔵 LecturerDashboard - Fetching all courses...');
       return base44.entities.Course.list(); // Fetch ALL courses initially
     },
     enabled: !!user, // Enable query only when user object is not null
-    initialData: [],
   });
 
   // Filter courses based on user role: admins see all, lecturers see only their own
@@ -55,22 +55,19 @@ export default function LecturerDashboard() {
     ? coursesFetchedRaw // Admins see all courses
     : coursesFetchedRaw.filter(c => c.instructor === user?.email); // Lecturers see only their courses
 
-  const { data: allAssignments } = useQuery({
+  const { data: allAssignments = [] } = useQuery({
     queryKey: ['all-assignments'],
     queryFn: () => base44.entities.Assignment.list(),
-    initialData: [],
   });
 
-  const { data: allSubmissions } = useQuery({
+  const { data: allSubmissions = [] } = useQuery({
     queryKey: ['all-submissions'],
     queryFn: () => base44.entities.Submission.list('-submitted_at'),
-    initialData: [],
   });
 
-  const { data: allEnrollments } = useQuery({
+  const { data: allEnrollments = [] } = useQuery({
     queryKey: ['all-enrollments'],
     queryFn: () => base44.entities.Enrollment.list(),
-    initialData: [],
   });
 
   // These derived states now use `displayCourses` instead of the raw `courses` data

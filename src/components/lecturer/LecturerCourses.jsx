@@ -1,6 +1,11 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -20,78 +25,10 @@ import {
   ChevronRight,
   Sparkles,
 } from "lucide-react";
+import CreateCourseDialog from "../courses/CreateCourseDialog";
+import EditCourseDialog from "./EditCourseDialog";
 
-// Mock course data
-const mockCourses = [
-  {
-    id: 1,
-    code: "AGB 304",
-    title: "Agricultural Biotechnology and Ethics",
-    status: "draft",
-    program: "Bachelor of Agribusiness, Minor in Non-Profit Sustainable and Community Development",
-    college: "College of Agriculture and Natural Resources",
-    students: 0,
-    semester: "Fall 2025",
-    description: "Introduces biotechnological innovations in agriculture while addressing related ethical considerations.",
-  },
-  {
-    id: 2,
-    code: "HCA 207",
-    title: "Healthcare Information Systems",
-    status: "published",
-    program: "Bachelor of Science in Healthcare Administration, Minor in Health Ministry",
-    college: "College of Health Science",
-    students: 1,
-    semester: "Fall 2025",
-    description: "Comprehensive study of healthcare information systems and their applications.",
-  },
-  {
-    id: 3,
-    code: "GEN 108",
-    title: "Ethics and Moral Reasoning",
-    status: "published",
-    program: "Bachelor of Science in Healthcare Administration, Minor in Health Ministry",
-    college: "College of Health Science",
-    students: 2,
-    semester: "Fall 2025",
-    description: "Explores ethical frameworks and moral reasoning in various contexts.",
-  },
-  {
-    id: 4,
-    code: "HCA 205",
-    title: "Healthcare Management",
-    status: "published",
-    program: "Bachelor of Health Administration",
-    college: "College of Health Science",
-    students: 3,
-    semester: "Fall 2025",
-    description: "Study of healthcare management principles and practices.",
-  },
-  {
-    id: 5,
-    code: "AGB 209",
-    title: "Agriculture and Sustainable Development",
-    status: "published",
-    program: "Bachelor of Agriculture",
-    college: "College of Agriculture and Natural Resources",
-    students: 4,
-    semester: "Spring 2026",
-    description: "Sustainable approaches to agricultural development.",
-  },
-  {
-    id: 6,
-    code: "CCP 208",
-    title: "Counseling and Psychology",
-    status: "published",
-    program: "Bachelor of Science in Counseling & Psychology",
-    college: "College of Psychology",
-    students: 5,
-    semester: "Spring 2026",
-    description: "Foundation concepts in counseling and psychology practice.",
-  },
-];
-
-export default function LecturerCourses() {
+export default function LecturerCourses({ courses = [], user, isAdmin }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [collegeFilter, setCollegeFilter] = useState("All Colleges");
@@ -100,17 +37,102 @@ export default function LecturerCourses() {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const coursesPerPage = 12;
 
-  const filteredCourses = mockCourses.filter((course) => {
+  // Fetch all colleges
+  const { data: colleges = [], isLoading: collegesLoading, error: collegesError } = useQuery({
+    queryKey: ['colleges'],
+    queryFn: async () => {
+      console.log('🔵 LecturerCourses - Fetching colleges...');
+      const result = await base44.entities.College.list('name');
+      console.log('🔵 LecturerCourses - Colleges fetched:', result);
+      return result;
+    },
+  });
+
+  // Debug: Log colleges data
+  React.useEffect(() => {
+    console.log('LecturerCourses - Colleges data:', colleges);
+    console.log('LecturerCourses - Colleges count:', colleges?.length || 0);
+    console.log('LecturerCourses - Colleges loading:', collegesLoading);
+    console.log('LecturerCourses - Colleges error:', collegesError);
+  }, [colleges, collegesLoading, collegesError]);
+
+  // Fetch all lecturers (for admin)
+  const { data: lecturers = [] } = useQuery({
+    queryKey: ['lecturers'],
+    queryFn: async () => {
+      const users = await base44.entities.User.list();
+      return users.filter(u => u.role === 'lecturer' || u.role === 'admin');
+    },
+    enabled: isAdmin,
+  });
+
+  // Fetch enrollments to get student counts
+  const { data: allEnrollments = [] } = useQuery({
+    queryKey: ['all-enrollments'],
+    queryFn: () => base44.entities.Enrollment.list(),
+  });
+
+  // Add student count to courses
+  const coursesWithStudents = courses.map(course => ({
+    ...course,
+    students: allEnrollments.filter(e => e.course_id === course.id && e.status === 'active').length
+  }));
+
+  // Create mutations
+  const createCourseMutation = useMutation({
+    mutationFn: (courseData) => {
+      // Set instructor to current user if not admin
+      if (!isAdmin) {
+        courseData.instructor = user?.email;
+        courseData.instructor_name = user?.full_name;
+      }
+      return base44.entities.Course.create(courseData);
+    },
+    onSuccess: (newCourse) => {
+      queryClient.invalidateQueries({ queryKey: ['all-courses-for-dashboard'] });
+      setShowCreateDialog(false);
+      toast({
+        title: "✅ Course Created!",
+        description: `${newCourse.code} - ${newCourse.title} has been created successfully.`,
+      });
+    },
+  });
+
+  const updateCourseMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Course.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-courses-for-dashboard'] });
+      setEditingCourse(null);
+    },
+  });
+
+  // Get unique college names from colleges (not courses)
+  const uniqueCollegeNames = colleges.map(c => c.name).sort();
+
+  // Get unique semesters from courses, with defaults if empty
+  const uniqueSemesters = coursesWithStudents.length > 0 
+    ? [...new Set(coursesWithStudents.map(c => c.semester).filter(Boolean))].sort()
+    : ['Fall 2025', 'Spring 2026', 'Summer 2026', 'Fall 2026'];
+
+  const filteredCourses = coursesWithStudents.filter((course) => {
     const matchesSearch =
-      course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.title.toLowerCase().includes(searchTerm.toLowerCase());
+      course.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.title?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "All Status" || course.status === statusFilter;
+    
+    // Match by college name
+    const courseCampus = colleges.find(c => c.id === course.college_id);
     const matchesCollege =
-      collegeFilter === "All Colleges" || course.college === collegeFilter;
+      collegeFilter === "All Colleges" || courseCampus?.name === collegeFilter;
+    
     const matchesSemester =
       semesterFilter === "All Semesters" || course.semester === semesterFilter;
 
@@ -124,15 +146,21 @@ export default function LecturerCourses() {
     startIdx + coursesPerPage
   );
 
-  const openEditModal = (course) => {
-    setEditingCourse(course);
-    setIsEditModalOpen(true);
-  };
-
   const statusBadgeColor = (status) => {
     return status === "published"
       ? "bg-green-500"
       : "bg-orange-500";
+  };
+
+  const handleCreateCourse = async (courseData) => {
+    await createCourseMutation.mutateAsync(courseData);
+  };
+
+  const handleUpdateCourse = async (courseData) => {
+    await updateCourseMutation.mutateAsync({
+      id: editingCourse.id,
+      data: courseData
+    });
   };
 
   return (
@@ -173,7 +201,10 @@ export default function LecturerCourses() {
               <Sparkles className="w-4 h-4" />
               AI Course Creator
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2">
+            <Button 
+              onClick={() => setShowCreateDialog(true)}
+              className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+            >
               <Plus className="w-4 h-4" />
               Create Course
             </Button>
@@ -197,10 +228,12 @@ export default function LecturerCourses() {
             onChange={(e) => setCollegeFilter(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option>All Colleges</option>
-            <option>College of Agriculture and Natural Resources</option>
-            <option>College of Health Science</option>
-            <option>College of Psychology</option>
+            <option>All Colleges ({colleges?.length || 0} available)</option>
+            {uniqueCollegeNames.sort().map((collegeName) => (
+              <option key={collegeName} value={collegeName}>
+                {collegeName}
+              </option>
+            ))}
           </select>
 
           <select
@@ -209,8 +242,11 @@ export default function LecturerCourses() {
             className="px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option>All Semesters</option>
-            <option>Fall 2025</option>
-            <option>Spring 2026</option>
+            {uniqueSemesters.sort().map((semester) => (
+              <option key={semester} value={semester}>
+                {semester}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -218,7 +254,7 @@ export default function LecturerCourses() {
       {/* Results Info */}
       <div className="flex justify-between items-center">
         <p className="text-sm text-gray-600">
-          Showing {startIdx + 1}-{Math.min(startIdx + coursesPerPage, filteredCourses.length)} of{" "}
+          Showing {paginatedCourses.length > 0 ? startIdx + 1 : 0}-{Math.min(startIdx + coursesPerPage, filteredCourses.length)} of{" "}
           {filteredCourses.length} courses
         </p>
         <div className="flex items-center gap-2">
@@ -237,8 +273,8 @@ export default function LecturerCourses() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(Math.min(totalPages || 1, currentPage + 1))}
+              disabled={currentPage === totalPages || totalPages === 0}
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
@@ -246,7 +282,31 @@ export default function LecturerCourses() {
         </div>
       </div>
 
-      {/* Courses Grid */}
+      {/* Courses Grid or Empty State */}
+      {paginatedCourses.length === 0 ? (
+        <div className="bg-white rounded-xl p-12 text-center shadow-md border border-gray-200">
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="w-10 h-10 text-gray-400" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
+            {coursesWithStudents.length === 0 ? 'No Courses Yet' : 'No Courses Found'}
+          </h3>
+          <p className="text-gray-500 mb-6">
+            {coursesWithStudents.length === 0 
+              ? 'Get started by creating your first course using the "Create Course" button above.'
+              : 'Try adjusting your search or filters to find courses.'}
+          </p>
+          {coursesWithStudents.length === 0 && (
+            <Button 
+              onClick={() => setShowCreateDialog(true)}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Your First Course
+            </Button>
+          )}
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {paginatedCourses.map((course) => (
           <Card
@@ -285,11 +345,11 @@ export default function LecturerCourses() {
 
               {/* Program & Details */}
               <p className="text-xs text-gray-600 mb-2 line-clamp-1">
-                {course.college.split(" ").slice(0, 3).join(" ")}
+                {colleges.find(c => c.id === course.college_id)?.name || 'Unknown College'}
               </p>
               <p className="text-xs text-gray-500 mb-4">
                 <span className="font-semibold text-gray-600">
-                  {course.program.split(",")[0].substring(0, 50)}...
+                  {course.degree_program?.substring(0, 50)}{course.degree_program?.length > 50 ? '...' : ''}
                 </span>
               </p>
 
@@ -301,7 +361,11 @@ export default function LecturerCourses() {
 
               {/* Action Buttons */}
               <div className="space-y-2">
-                <Button className="w-full text-xs" variant="outline">
+                <Button 
+                  onClick={() => navigate(`${createPageUrl('course-detail')}?id=${course.id}`)}
+                  className="w-full text-xs" 
+                  variant="outline"
+                >
                   <Eye className="w-3 h-3 mr-1" />
                   View
                 </Button>
@@ -329,7 +393,10 @@ export default function LecturerCourses() {
                   </Button>
                 </div>
                 <Button
-                  onClick={() => openEditModal(course)}
+                  onClick={() => {
+                    setEditingCourse(course);
+                    setIsEditModalOpen(true);
+                  }}
                   className="w-full text-xs"
                   variant="outline"
                 >
@@ -341,149 +408,40 @@ export default function LecturerCourses() {
           </Card>
         ))}
       </div>
+      )}
 
-      {/* Edit Course Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Course</DialogTitle>
-            <DialogClose />
-          </DialogHeader>
+      {/* Create Course Dialog */}
+      <CreateCourseDialog
+        open={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        onSubmit={async (courseData) => {
+          await createCourseMutation.mutateAsync(courseData);
+        }}
+        isLoading={createCourseMutation.isPending}
+        lecturers={lecturers}
+        colleges={colleges}
+        isAdmin={isAdmin}
+      />
 
-          {editingCourse && (
-            <div className="space-y-6">
-              {/* Course Code & Level */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Course Code *
-                  </label>
-                  <input
-                    type="text"
-                    defaultValue={editingCourse.code}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Program Level *
-                  </label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    <option>Bachelor</option>
-                    <option>Master</option>
-                    <option>Certificate</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Degree Program & College */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Degree Program *
-                  </label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    <option>{editingCourse.program.split(",")[0]}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    College/Department *
-                  </label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    <option>{editingCourse.college}</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Course Title */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Course Title *
-                </label>
-                <input
-                  type="text"
-                  defaultValue={editingCourse.title}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              {/* Short Description */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Short Description
-                </label>
-                <textarea
-                  rows="3"
-                  defaultValue={editingCourse.description}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                ></textarea>
-              </div>
-
-              {/* AI Course Assistant */}
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <h4 className="font-bold text-purple-900 mb-3 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  AI Course Assistant
-                </h4>
-                <div className="flex gap-2 mb-4">
-                  <Button
-                    variant="outline"
-                    className="text-xs flex items-center gap-1"
-                  >
-                    <Wand2 className="w-3 h-3" />
-                    Generate Description
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="text-xs flex items-center gap-1"
-                  >
-                    Suggest Keywords
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="text-xs flex items-center gap-1"
-                  >
-                    Recommend Prerequisites
-                  </Button>
-                </div>
-                <p className="text-xs text-purple-700">
-                  ✓ All will generate comprehensive descriptions, relevant keywords, and recommend appropriate prerequisites
-                </p>
-              </div>
-
-              {/* Full Description */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Full Description (300 words)
-                </label>
-                <textarea
-                  rows="8"
-                  placeholder="Detailed course description..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  defaultValue={editingCourse.description}
-                ></textarea>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditModalOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => setIsEditModalOpen(false)}
-                >
-                  Save Changes
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Edit Course Dialog */}
+      <EditCourseDialog
+        open={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingCourse(null);
+        }}
+        onSubmit={async (courseData) => {
+          await updateCourseMutation.mutateAsync({
+            id: editingCourse.id,
+            data: courseData
+          });
+        }}
+        course={editingCourse}
+        isLoading={updateCourseMutation.isPending}
+        lecturers={lecturers}
+        colleges={colleges}
+        isAdmin={isAdmin}
+      />
     </div>
   );
 }

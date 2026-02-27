@@ -51,6 +51,9 @@ const normalizeCollegeName = (collegeName) => {
   return collegeNameMap[collegeName] || collegeName;
 };
 
+// In-memory storage for mock mode created courses
+const mockCreatedCourses = [];
+
 // Helper function to make API requests
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -371,10 +374,11 @@ export const base44 = {
             }
           ];
           
-          const allCourses = [...formattedCourses, ...additionalCourses];
+          const allCourses = [...formattedCourses, ...additionalCourses, ...mockCreatedCourses];
           
           console.log('[Course.list] Total courses loaded:', allCourses.length);
-          console.log('[Course.list] Sample colleges:', [...new Set(allCourses.map(c => c.college.name))].slice(0, 10));
+          console.log('[Course.list] Mock created courses:', mockCreatedCourses.length);
+          console.log('[Course.list] Sample colleges:', [...new Set(allCourses.map(c => c.college?.name || 'Unknown'))].slice(0, 10));
           
           return Promise.resolve(allCourses);
         }
@@ -391,7 +395,38 @@ export const base44 = {
       },
       create: (courseData) => {
         if (MOCK_MODE) {
-          return Promise.resolve({ id: Date.now(), ...courseData });
+          // Create new course with proper format
+          const newCourse = {
+            id: Date.now().toString(),
+            code: courseData.code,
+            title: courseData.title,
+            description: courseData.description || '',
+            category: courseData.title,
+            level: courseData.program || 'Bachelor',
+            credits: courseData.credits || 3,
+            semester: courseData.semester || 'Fall 2026',
+            startDate: new Date().toISOString().split('T')[0],
+            status: courseData.status || 'draft',
+            enrollment_limit: courseData.enrollment_limit || 30,
+            instructor: courseData.instructor || '',
+            instructor_name: courseData.instructor_name || '',
+            degree_program: courseData.degree_program || '',
+            college_id: courseData.college_id,
+            college_name: courseData.college_name,
+            thumbnail: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80',
+            college: { 
+              id: courseData.college_id, 
+              name: courseData.college_name 
+            }
+          };
+          
+          // Add to mock storage
+          mockCreatedCourses.push(newCourse);
+          
+          console.log('✅ Course created in mock mode:', newCourse);
+          console.log('📚 Total mock courses now:', mockCreatedCourses.length);
+          
+          return Promise.resolve(newCourse);
         }
         return apiRequest('/courses', {
           method: 'POST',
@@ -402,7 +437,37 @@ export const base44 = {
     College: {
       list: (sort = '-created_at') => {
         if (MOCK_MODE) {
-          return Promise.resolve([]);
+          // Return all colleges
+          const mockColleges = [
+            { id: '1', name: 'College of Agriculture and Natural Resources' },
+            { id: '2', name: 'College of Architecture, Arts and Design' },
+            { id: '3', name: 'College of Arts and Humanities' },
+            { id: '4', name: 'College of Aviation' },
+            { id: '5', name: 'College of Business Economics' },
+            { id: '6', name: 'College of Cosmetology' },
+            { id: '7', name: 'College of Earth Science and Industrial Technologies' },
+            { id: '8', name: 'College of Education and Human Development' },
+            { id: '9', name: 'College of Health Sciences' },
+            { id: '10', name: 'College of International Studies' },
+            { id: '11', name: 'College of Law' },
+            { id: '12', name: 'College of Media and Communications' },
+            { id: '13', name: 'College of Medicine' },
+            { id: '14', name: 'College of Nature' },
+            { id: '15', name: 'College of Psychology' },
+            { id: '16', name: 'College of Public Health' },
+            { id: '17', name: 'College of Science and Engineering' },
+            { id: '18', name: 'College of Tourism, Hospitality, Management' },
+            { id: '19', name: 'HBIU College for Prior Learning' },
+            { id: '20', name: 'HBIU College of Coaching' },
+            { id: '21', name: 'HBIU College of Fashion Design' },
+            { id: '22', name: 'HBIU Graduate School' },
+            { id: '23', name: 'HBIU Seminary' },
+            { id: '24', name: 'HBIU Training Institute' }
+          ];
+          console.log('base44Client - College.list() called in MOCK_MODE');
+          console.log('base44Client - Returning colleges:', mockColleges);
+          console.log('base44Client - Colleges count:', mockColleges.length);
+          return Promise.resolve(mockColleges);
         }
         return apiRequest(`/colleges`);
       }
