@@ -46,7 +46,7 @@ export default function AIInstructorChat({ courseId, open, onClose }) {
     queryKey: ['course', courseId],
     queryFn: async () => {
       const courses = await base44.entities.Course.list();
-      return courses.find(c => c.id === courseId);
+      return courses.find(c => String(c.id) === String(courseId));
     },
     enabled: !!courseId,
   });

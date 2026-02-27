@@ -51,8 +51,25 @@ const normalizeCollegeName = (collegeName) => {
   return collegeNameMap[collegeName] || collegeName;
 };
 
-// In-memory storage for mock mode created courses
-const mockCreatedCourses = [];
+// LocalStorage-backed storage for mock mode created courses
+const getMockCreatedCourses = () => {
+  try {
+    const stored = localStorage.getItem('mockCreatedCourses');
+    return stored ? JSON.parse(stored) : [];
+  } catch (e) {
+    console.error('Error loading mock courses from localStorage:', e);
+    return [];
+  }
+};
+
+const saveMockCreatedCourses = (courses) => {
+  try {
+    localStorage.setItem('mockCreatedCourses', JSON.stringify(courses));
+    console.log('💾 Saved', courses.length, 'mock courses to localStorage');
+  } catch (e) {
+    console.error('Error saving mock courses to localStorage:', e);
+  }
+};
 
 // Helper function to make API requests
 const apiRequest = async (endpoint, options = {}) => {
@@ -374,6 +391,7 @@ export const base44 = {
             }
           ];
           
+          const mockCreatedCourses = getMockCreatedCourses();
           const allCourses = [...formattedCourses, ...additionalCourses, ...mockCreatedCourses];
           
           console.log('[Course.list] Total courses loaded:', allCourses.length);
@@ -384,9 +402,26 @@ export const base44 = {
         }
         return apiRequest(`/courses`);
       },
-      filter: (filters, sort = '-created_at', limit = 100) => {
+      filter: async (filters, sort = '-created_at', limit = 100) => {
         if (MOCK_MODE) {
-          return Promise.resolve([]);
+          // Get all courses and filter them
+          const allCourses = await this.list(sort, limit);
+          let filtered = allCourses;
+          
+          if (filters) {
+            filtered = allCourses.filter(course => {
+              return Object.entries(filters).every(([key, value]) => {
+                // Handle different comparison types
+                if (key === 'college_id') {
+                  return String(course.college_id) === String(value) || String(course.college?.id) === String(value);
+                }
+                return String(course[key]) === String(value);
+              });
+            });
+          }
+          
+          console.log('[Course.filter] Filters:', filters, 'Results:', filtered.length);
+          return Promise.resolve(filtered);
         }
         return apiRequest(`/courses/filter`, {
           method: 'POST',
@@ -420,11 +455,13 @@ export const base44 = {
             }
           };
           
-          // Add to mock storage
-          mockCreatedCourses.push(newCourse);
+          // Add to localStorage-backed storage
+          const currentCourses = getMockCreatedCourses();
+          currentCourses.push(newCourse);
+          saveMockCreatedCourses(currentCourses);
           
           console.log('✅ Course created in mock mode:', newCourse);
-          console.log('📚 Total mock courses now:', mockCreatedCourses.length);
+          console.log('📚 Total mock courses now:', currentCourses.length);
           
           return Promise.resolve(newCourse);
         }

@@ -285,13 +285,12 @@ export default function EnrollmentDashboard() {
     }).catch(() => {});
   }, []);
 
-  const { data: colleges } = useQuery({
+  const { data: colleges = [] } = useQuery({
     queryKey: ['colleges'],
     queryFn: () => base44.entities.College.list('name'),
-    initialData: [],
   });
 
-  const { data: courses } = useQuery({
+  const { data: courses = [] } = useQuery({
     queryKey: ['all-courses'],
     queryFn: async () => {
       try {
@@ -304,20 +303,17 @@ export default function EnrollmentDashboard() {
         return [];
       }
     },
-    initialData: [],
   });
 
-  const { data: enrollments, isLoading: enrollmentsLoading } = useQuery({ // myEnrollments in outline
+  const { data: enrollments = [], isLoading: enrollmentsLoading } = useQuery({ // myEnrollments in outline
     queryKey: ['my-enrollments', user?.email],
     queryFn: () => user ? base44.entities.Enrollment.filter({ student_email: user.email }) : [],
     enabled: !!user,
-    initialData: [],
   });
 
   const { data: allEnrollments = [] } = useQuery({ // All enrollments for course capacity
     queryKey: ['all-active-enrollments'],
     queryFn: () => base44.entities.Enrollment.filter({ status: 'active' }),
-    initialData: [],
   });
 
   const { data: transcripts } = useQuery({

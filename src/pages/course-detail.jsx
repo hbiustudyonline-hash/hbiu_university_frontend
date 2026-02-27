@@ -69,7 +69,8 @@ export default function CourseDetail() {
     queryKey: ['course', courseId],
     queryFn: async () => {
       const courses = await base44.entities.Course.list();
-      return courses.find(c => c.id === courseId);
+      // Convert both IDs to strings for comparison to handle mixed types
+      return courses.find(c => String(c.id) === String(courseId));
     },
     enabled: !!courseId,
   });

@@ -122,28 +122,26 @@ export default function CollegeDetail() {
     queryKey: ['college', collegeId],
     queryFn: async () => {
       const colleges = await base44.entities.College.list();
-      return colleges.find(c => c.id === collegeId);
+      // Convert both IDs to strings for comparison
+      return colleges.find(c => String(c.id) === String(collegeId));
     },
   });
 
-  const { data: courses, isLoading: coursesLoading } = useQuery({
+  const { data: courses = [], isLoading: coursesLoading } = useQuery({
     queryKey: ['college-courses', collegeId],
     queryFn: () => base44.entities.Course.filter({ college_id: collegeId }),
-    initialData: [],
     enabled: !!collegeId,
   });
 
-  const { data: enrollments } = useQuery({
+  const { data: enrollments = [] } = useQuery({
     queryKey: ['enrollments', user?.email],
     queryFn: () => user ? base44.entities.Enrollment.filter({ student_email: user.email }) : [],
     enabled: !!user,
-    initialData: [],
   });
 
-  const { data: announcements } = useQuery({
+  const { data: announcements = [] } = useQuery({
     queryKey: ['college-announcements', collegeId],
     queryFn: () => base44.entities.Announcement.list('-created_date', 3),
-    initialData: [],
   });
 
   const isInstructor = user?.role === 'admin';

@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -40,7 +39,6 @@ export default function LecturerCourses({ courses = [], user, isAdmin }) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const coursesPerPage = 12;
 
@@ -96,12 +94,9 @@ export default function LecturerCourses({ courses = [], user, isAdmin }) {
       return base44.entities.Course.create(courseData);
     },
     onSuccess: (newCourse) => {
+      console.log('✅ Course created successfully:', newCourse);
       queryClient.invalidateQueries({ queryKey: ['all-courses-for-dashboard'] });
       setShowCreateDialog(false);
-      toast({
-        title: "✅ Course Created!",
-        description: `${newCourse.code} - ${newCourse.title} has been created successfully.`,
-      });
     },
   });
 
