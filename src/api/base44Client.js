@@ -51,6 +51,38 @@ const normalizeCollegeName = (collegeName) => {
   return collegeNameMap[collegeName] || collegeName;
 };
 
+// Map college names to IDs
+const getCollegeIdByName = (collegeName) => {
+  const normalizedName = normalizeCollegeName(collegeName);
+  const collegeMap = {
+    'College of Agriculture and Natural Resources': '1',
+    'College of Architecture, Arts and Design': '2',
+    'College of Arts and Humanities': '3',
+    'College of Aviation': '4',
+    'College of Business Economics': '5',
+    'College of Cosmetology': '6',
+    'College of Earth Science and Industrial Technologies': '7',
+    'College of Education and Human Development': '8',
+    'College of Health Sciences': '9',
+    'College of International Studies': '10',
+    'College of Law': '11',
+    'College of Media and Communications': '12',
+    'College of Medicine': '13',
+    'College of Nature': '14',
+    'College of Psychology': '15',
+    'College of Public Health': '16',
+    'College of Science and Engineering': '17',
+    'College of Tourism, Hospitality, Management': '18',
+    'HBIU College for Prior Learning': '19',
+    'HBIU College of Coaching': '20',
+    'HBIU College of Fashion Design': '21',
+    'HBIU Graduate School': '22',
+    'HBIU Seminary': '23',
+    'HBIU Training Institute': '24'
+  };
+  return collegeMap[normalizedName] || '1'; // Default to college 1 if not found
+};
+
 // LocalStorage-backed storage for mock mode created courses
 const getMockCreatedCourses = () => {
   try {
@@ -296,26 +328,32 @@ export const base44 = {
       list: (sort = '-created_at', limit = 100) => {
         if (MOCK_MODE) {
           // Convert courses from courses.json to match the expected format
-          const formattedCourses = coursesData.courses.map((course, index) => ({
-            id: index + 1,
-            code: course.code,
-            title: course.title,
-            description: course.description,
-            category: course.title,
-            level: course.program,
-            credits: course.credits,
-            semester: course.semester || 'Fall 2025',
-            status: 'published',
-            instructor: 'john.smith@hbiu.edu', // Default instructor for existing courses
-            instructor_name: 'John Smith',
-            startDate: course.semester === 'Semester 1' ? '2025-09-01' : '2026-01-15',
-            thumbnail: course.image,
-            college_id: String((index % 24) + 1), // Store as string to match College IDs
-            college: { 
-              id: String((index % 24) + 1), 
-              name: normalizeCollegeName(course.college)
-            }
-          }));
+          const formattedCourses = coursesData.courses.map((course, index) => {
+            // Get the proper college ID based on the course's original college name
+            const normalizedCollegeName = normalizeCollegeName(course.college);
+            const collegeId = getCollegeIdByName(course.college);
+            
+            return {
+              id: index + 1,
+              code: course.code,
+              title: course.title,
+              description: course.description,
+              category: course.title,
+              level: course.program,
+              credits: course.credits,
+              semester: course.semester || 'Fall 2025',
+              status: 'published',
+              instructor: 'john.smith@hbiu.edu', // Default instructor for existing courses
+              instructor_name: 'John Smith',
+              startDate: course.semester === 'Semester 1' ? '2025-09-01' : '2026-01-15',
+              thumbnail: course.image,
+              college_id: collegeId, // Use actual college ID from course data
+              college: { 
+                id: collegeId, 
+                name: normalizedCollegeName
+              }
+            };
+          });
           
           // Add courses for colleges not in courses.json
           const additionalCourses = [
@@ -432,6 +470,14 @@ export const base44 = {
           console.log('[Course.list] Total courses loaded:', allCourses.length);
           console.log('[Course.list] Mock created courses:', mockCreatedCourses.length);
           console.log('[Course.list] Sample colleges:', [...new Set(allCourses.map(c => c.college?.name || 'Unknown'))].slice(0, 10));
+          
+          // Debug: Show distribution of courses by college_id
+          const collegeDistribution = {};
+          allCourses.forEach(c => {
+            const id = c.college_id || 'undefined';
+            collegeDistribution[id] = (collegeDistribution[id] || 0) + 1;
+          });
+          console.log('[Course.list] Courses per college_id:', collegeDistribution);
           
           return Promise.resolve(allCourses);
         }

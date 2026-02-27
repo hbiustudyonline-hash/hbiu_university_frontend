@@ -129,7 +129,15 @@ export default function CollegeDetail() {
 
   const { data: courses = [], isLoading: coursesLoading } = useQuery({
     queryKey: ['college-courses', collegeId],
-    queryFn: () => base44.entities.Course.filter({ college_id: collegeId }),
+    queryFn: async () => {
+      console.log('🔍 CollegeDetail - Fetching courses for college ID:', collegeId);
+      const result = await base44.entities.Course.filter({ college_id: collegeId });
+      console.log('🔍 CollegeDetail - Courses found:', result.length);
+      if (result.length > 0) {
+        console.log('🔍 CollegeDetail - Sample course college_ids:', result.slice(0, 5).map(c => c.college_id));
+      }
+      return result;
+    },
     enabled: !!collegeId,
   });
 
