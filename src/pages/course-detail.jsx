@@ -18,37 +18,57 @@ import {
   File,
   Calendar,
   Target,
-  ArrowLeft
+  ArrowLeft,
+  Info,
+  TrendingUp,
+  Mic,
+  ListPlus
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
+import CourseOverview from "../components/course/CourseOverview";
 import CourseHome from "../components/course/CourseHome";
 import CourseAnnouncements from "../components/course/CourseAnnouncements";
+import CourseCalendar from "../components/course/CourseCalendar";
 import CourseSyllabus from "../components/course/CourseSyllabus";
 import CourseModules from "../components/course/CourseModules";
+import CourseTextbook from "../components/course/CourseTextbook";
 import CourseGrades from "../components/course/CourseGrades";
+import CourseMyProgress from "../components/course/CourseMyProgress";
 import CourseAssignments from "../components/course/CourseAssignments";
+import CourseExtraAssignments from "../components/course/CourseExtraAssignments";
 import CourseDiscussions from "../components/course/CourseDiscussions";
+import CourseGroupProjects from "../components/course/CourseGroupProjects";
 import CourseQuizzes from "../components/course/CourseQuizzes";
+import CourseMidtermExam from "../components/course/CourseMidtermExam";
+import CourseFinalExam from "../components/course/CourseFinalExam";
+import CourseOralExam from "../components/course/CourseOralExam";
 import CoursePeople from "../components/course/CoursePeople";
 import CoursePages from "../components/course/CoursePages";
 import CourseFiles from "../components/course/CourseFiles";
 import CourseAttendance from "../components/course/CourseAttendance";
-import CourseFinalExam from "../components/course/CourseFinalExam";
 import AIInstructorPanel from "../components/course/AIInstructorPanel";
 
 const courseTabs = [
+  { id: 'overview', label: 'Course Overview', icon: Info },
   { id: 'home', label: 'Home', icon: Home },
   { id: 'announcements', label: 'Announcements', icon: Bell },
+  { id: 'calendar', label: 'Calendar', icon: Calendar },
   { id: 'syllabus', label: 'Syllabus', icon: FileText },
   { id: 'modules', label: 'Modules', icon: BookOpen },
+  { id: 'textbook', label: 'Textbook', icon: BookOpen },
   { id: 'grades', label: 'Grades', icon: GraduationCap },
+  { id: 'my-progress', label: 'My Progress', icon: TrendingUp },
   { id: 'assignments', label: 'Assignments', icon: ClipboardList },
+  { id: 'extra-assignments', label: 'Extra Assignments', icon: ListPlus },
   { id: 'discussions', label: 'Discussions', icon: MessageSquare },
+  { id: 'group-projects', label: 'Group Projects', icon: Users },
   { id: 'quizzes', label: 'Quizzes', icon: HelpCircle },
+  { id: 'midterm-exam', label: 'Midterm Exam', icon: FileText },
   { id: 'final-exam', label: 'Final Exam', icon: Target },
+  { id: 'oral-exam', label: 'Oral Exam', icon: Mic },
   { id: 'people', label: 'People', icon: Users },
   { id: 'pages', label: 'Pages', icon: LayoutGrid },
   { id: 'files', label: 'Files', icon: File },
@@ -58,7 +78,7 @@ const courseTabs = [
 export default function CourseDetail() {
   const [searchParams] = useSearchParams();
   const courseId = searchParams.get('id');
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState('overview');
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -199,21 +219,34 @@ export default function CourseDetail() {
       {/* Course Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
         <Tabs value={activeTab}>
+          <TabsContent value="overview">
+            <CourseOverview course={course} isInstructor={isInstructor} />
+          </TabsContent>
+          
           <TabsContent value="home">
             <div className="space-y-6">
-              <CourseHome course={course} isInstructor={isInstructor} />
-              
-              {/* AI Instructor Panel */}
+              {/* AI Instructor Panel - Shown First */}
               <AIInstructorPanel 
                 courseId={courseId} 
                 isInstructor={isInstructor}
               />
+              
+              {/* Course Home - Contains Generator and Course Info */}
+              <CourseHome course={course} isInstructor={isInstructor} />
             </div>
           </TabsContent>
           
           <TabsContent value="announcements">
             {isEnrolled ? (
               <CourseAnnouncements courseId={courseId} isInstructor={isInstructor} />
+            ) : (
+              <NotEnrolledMessage />
+            )}
+          </TabsContent>
+          
+          <TabsContent value="calendar">
+            {isEnrolled ? (
+              <CourseCalendar courseId={courseId} isInstructor={isInstructor} />
             ) : (
               <NotEnrolledMessage />
             )}
@@ -235,9 +268,25 @@ export default function CourseDetail() {
             )}
           </TabsContent>
           
+          <TabsContent value="textbook">
+            {isEnrolled ? (
+              <CourseTextbook courseId={courseId} isInstructor={isInstructor} />
+            ) : (
+              <NotEnrolledMessage />
+            )}
+          </TabsContent>
+          
           <TabsContent value="grades">
             {isEnrolled ? (
               <CourseGrades courseId={courseId} isInstructor={isInstructor} />
+            ) : (
+              <NotEnrolledMessage />
+            )}
+          </TabsContent>
+          
+          <TabsContent value="my-progress">
+            {isEnrolled ? (
+              <CourseMyProgress courseId={courseId} isInstructor={isInstructor} />
             ) : (
               <NotEnrolledMessage />
             )}
@@ -251,9 +300,25 @@ export default function CourseDetail() {
             )}
           </TabsContent>
           
+          <TabsContent value="extra-assignments">
+            {isEnrolled ? (
+              <CourseExtraAssignments courseId={courseId} isInstructor={isInstructor} />
+            ) : (
+              <NotEnrolledMessage />
+            )}
+          </TabsContent>
+          
           <TabsContent value="discussions">
             {isEnrolled ? (
               <CourseDiscussions courseId={courseId} isInstructor={isInstructor} />
+            ) : (
+              <NotEnrolledMessage />
+            )}
+          </TabsContent>
+          
+          <TabsContent value="group-projects">
+            {isEnrolled ? (
+              <CourseGroupProjects courseId={courseId} isInstructor={isInstructor} />
             ) : (
               <NotEnrolledMessage />
             )}
@@ -267,9 +332,25 @@ export default function CourseDetail() {
             )}
           </TabsContent>
           
+          <TabsContent value="midterm-exam">
+            {isEnrolled ? (
+              <CourseMidtermExam courseId={courseId} isInstructor={isInstructor} />
+            ) : (
+              <NotEnrolledMessage />
+            )}
+          </TabsContent>
+          
           <TabsContent value="final-exam">
             {isEnrolled ? (
               <CourseFinalExam courseId={courseId} isInstructor={isInstructor} />
+            ) : (
+              <NotEnrolledMessage />
+            )}
+          </TabsContent>
+          
+          <TabsContent value="oral-exam">
+            {isEnrolled ? (
+              <CourseOralExam courseId={courseId} isInstructor={isInstructor} />
             ) : (
               <NotEnrolledMessage />
             )}

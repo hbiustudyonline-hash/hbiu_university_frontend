@@ -4,7 +4,7 @@ import Dashboard from "./Dashboard";
 import DashboardSimple from "./DashboardSimple";
 import AdminDashboard from "./AdminDashboard";
 import LecturerDashboard from "./LecturerDashboard";
-import CourseDetail from "./CourseDetail";
+import CourseDetail from "./course-detail";
 import EnrollmentDashboard from "./EnrollmentDashboard";
 import Colleges from "./Colleges";
 // import CollegeAdminDashboard from "./CollegeAdminDashboard"; // Temporarily disabled
@@ -98,6 +98,14 @@ export default function Pages() {
         />
         <Route 
           path="/course/:id" 
+          element={
+            <ProtectedRoute>
+              <CourseDetail />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/course-detail" 
           element={
             <ProtectedRoute>
               <CourseDetail />
