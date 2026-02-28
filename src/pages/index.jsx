@@ -7,6 +7,7 @@ import LecturerDashboard from "./LecturerDashboard";
 import CourseDetail from "./course-detail";
 import EnrollmentDashboard from "./EnrollmentDashboard";
 import Colleges from "./Colleges";
+import VirtualAdminOffice from "./VirtualAdminOffice";
 // import CollegeAdminDashboard from "./CollegeAdminDashboard"; // Temporarily disabled
 import LoginTest from "./LoginTest";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -117,6 +118,22 @@ export default function Pages() {
           element={
             <ProtectedRoute>
               <Colleges />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/VirtualAdminOffice" 
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'lecturer']}>
+              <VirtualAdminOffice />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin-office" 
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'lecturer']}>
+              <VirtualAdminOffice />
             </ProtectedRoute>
           } 
         />

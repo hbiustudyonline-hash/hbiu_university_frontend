@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
       email: 'demo@hbiu.edu',
       firstName: 'Demo',
       lastName: 'User',
-      role: 'student',
+      role: 'admin',
       full_name: 'Demo User'
     };
   };

@@ -104,7 +104,7 @@ export default function Layout({ children, currentPageName }) {
   //   );
   // }
 
-  const isInstructor = user?.role === 'admin';
+  const isInstructor = user?.role === 'admin' || user?.role === 'lecturer';
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("Home"));
