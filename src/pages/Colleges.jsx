@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { base44 } from "@/api/base44Client";
+import { allPrograms } from "@/data/degreePrograms";
 import { 
   Building2, 
   Search, 
@@ -16,7 +17,14 @@ import {
   Award,
   Globe,
   Calendar,
-  Clock
+  Clock,
+  CreditCard,
+  ChevronDown,
+  Eye,
+  Download,
+  Edit2,
+  Trash2,
+  Plus
 } from "lucide-react";
 
 const colorThemes = [
@@ -232,6 +240,11 @@ export default function Colleges() {
   const [selectedProgram, setSelectedProgram] = useState("all");
   const [selectedSemester, setSelectedSemester] = useState("all");
   const { user, isAdmin, isLecturer, isStudent } = useAuth();
+  
+  // Program Outlines page states
+  const [programSearchQuery, setProgramSearchQuery] = useState("");
+  const [selectedProgramLevel, setSelectedProgramLevel] = useState("All Levels");
+  const [showLevelDropdown, setShowLevelDropdown] = useState(false);
 
   // Generate appropriate course cover image based on course category/title
   const getCourseCoverImage = (course) => {
@@ -286,6 +299,75 @@ export default function Colleges() {
       .replace(/\s+/g, ' ')  // Normalize whitespace
       .trim()
       .toLowerCase();
+  };
+
+  // Get college-specific programs from allPrograms
+  const collegePrograms = useMemo(() => {
+    if (!activeCollege) return [];
+    const normalized = normalizeCollegeName(activeCollege.name);
+    return allPrograms.filter(program => {
+      const programCollege = normalizeCollegeName(program.college);
+      return programCollege === normalized;
+    });
+  }, [activeCollege]);
+
+  // Filter programs based on search and level for the Program Outlines section
+  const filteredProgramOutlines = useMemo(() => {
+    return collegePrograms.filter(program => {
+      const matchesSearch = program.name.toLowerCase().includes(programSearchQuery.toLowerCase()) ||
+                           program.college.toLowerCase().includes(programSearchQuery.toLowerCase());
+      const matchesLevel = selectedProgramLevel === "All Levels" || program.level === selectedProgramLevel;
+      return matchesSearch && matchesLevel;
+    });
+  }, [collegePrograms, programSearchQuery, selectedProgramLevel]);
+
+  // Calculate overall statistics from all programs
+  const overallStats = useMemo(() => {
+    const bachelorPrograms = allPrograms.filter(p => p.level === "Bachelor").length;
+    const phdPrograms = allPrograms.filter(p => p.level === "PhD").length;
+    const masterPrograms = allPrograms.filter(p => p.level === "Master").length;
+    const associatePrograms = allPrograms.filter(p => p.level === "Associate").length;
+
+    return { bachelorPrograms, phdPrograms, masterPrograms, associatePrograms };
+  }, []);
+
+  const getLevelColor = (level) => {
+    switch (level) {
+      case 'Bachelor':
+        return 'bg-green-100 text-green-700';
+      case 'Master':
+        return 'bg-orange-100 text-orange-700';
+      case 'PhD':
+        return 'bg-blue-100 text-blue-700';
+      case 'Associate':
+        return 'bg-purple-100 text-purple-700';
+      case 'Doctorate':
+        return 'bg-indigo-100 text-indigo-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const handleViewProgram = (program) => {
+    console.log("Viewing program:", program);
+    alert(`Viewing details for: ${program.name}`);
+  };
+
+  const handleEditProgram = (program) => {
+    console.log("Editing program:", program);
+    alert(`Editing: ${program.name}`);
+  };
+
+  const handleDeleteProgram = (program) => {
+    console.log("Deleting program:", program);
+    if (confirm(`Are you sure you want to delete "${program.name}"?`)) {
+      alert("Program would be deleted (demo mode)");
+    }
+  };
+
+  const handleDownloadProgram = (program) => {
+    console.log("Downloading program:", program);
+    alert(`Downloading outline for: ${program.name}`);
   };
 
   // Fetch courses when a college is selected
@@ -523,180 +605,266 @@ export default function Colleges() {
           )}
 
           {activeTab === "program" && (
-            <div>
-              <h3 className="text-2xl font-bold mb-6">Program Outline</h3>
-              <p className="text-gray-700 leading-relaxed mb-8">{activeCollege.programOutline}</p>
-              
-              {/* Academic Levels Overview */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                {['Bachelor', 'Master', 'PhD', 'Doctorate'].map(level => {
-                  const programCount = activeCollege.courses.filter(c => c.level === level).length;
-                  if (programCount === 0) return null;
-                  
-                  return (
-                    <Card key={level} className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
-                      <CardContent className="p-6">
-                        <GraduationCap className={`w-10 h-10 mb-3 ${
-                          level === 'PhD' || level === 'Doctorate' ? 'text-green-600' :
-                          level === 'Master' ? 'text-purple-600' :
-                          'text-blue-600'
-                        }`} />
-                        <h4 className="font-bold text-lg mb-2">{level} Level</h4>
-                        <p className="text-sm text-gray-600 mb-2">{programCount} Programs Available</p>
-                        <div className="text-xs text-gray-500">
-                          {level === 'Bachelor' && '4 Years • 120-135 Credits'}
-                          {level === 'Master' && '2 Years • 60-79 Credits'}
-                          {level === 'PhD' && '4 Years • 90-103 Credits'}
-                          {level === 'Doctorate' && '3-4 Years • 96-105 Credits'}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              {/* Curriculum Structure */}
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <BookOpen className="w-6 h-6 text-blue-600" />
-                      </div>
-                      <h4 className="font-bold text-lg">Core Curriculum</h4>
+            <div className="space-y-8">
+              {/* Section 1: Available Degree Programs */}
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <div className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-md text-sm font-medium mb-2">
+                      🎓 Our Degrees
                     </div>
-                    <ul className="space-y-2 text-gray-700">
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
-                        <span>Foundation courses in discipline fundamentals</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
-                        <span>Research methodology and academic writing</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
-                        <span>Critical thinking and analysis</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2"></div>
-                        <span>Ethics and professional practice</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <Award className="w-6 h-6 text-purple-600" />
-                      </div>
-                      <h4 className="font-bold text-lg">Specialization</h4>
-                    </div>
-                    <ul className="space-y-2 text-gray-700">
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mt-2"></div>
-                        <span>Advanced coursework in chosen field</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mt-2"></div>
-                        <span>Optional minor concentrations</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mt-2"></div>
-                        <span>Elective courses for customization</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-purple-600 rounded-full mt-2"></div>
-                        <span>Interdisciplinary study options</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Users className="w-6 h-6 text-green-600" />
-                      </div>
-                      <h4 className="font-bold text-lg">Practical Experience</h4>
-                    </div>
-                    <ul className="space-y-2 text-gray-700">
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2"></div>
-                        <span>Internship and field placement opportunities</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2"></div>
-                        <span>Hands-on project work</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2"></div>
-                        <span>Industry partnerships and collaboration</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2"></div>
-                        <span>Professional development workshops</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                        <GraduationCap className="w-6 h-6 text-orange-600" />
-                      </div>
-                      <h4 className="font-bold text-lg">Capstone & Thesis</h4>
-                    </div>
-                    <ul className="space-y-2 text-gray-700">
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mt-2"></div>
-                        <span>Original research projects</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mt-2"></div>
-                        <span>Comprehensive examinations</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mt-2"></div>
-                        <span>Thesis or dissertation defense</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-orange-600 rounded-full mt-2"></div>
-                        <span>Portfolio and presentation requirements</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Learning Approach */}
-              <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
-                <CardContent className="p-6">
-                  <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
-                    <Globe className="w-6 h-6 text-blue-600" />
-                    Our Learning Approach
-                  </h4>
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <div>
-                      <h5 className="font-semibold mb-2 text-blue-900">Interdisciplinary</h5>
-                      <p className="text-sm text-gray-700">Integration of multiple fields of study for comprehensive understanding and innovative problem-solving.</p>
-                    </div>
-                    <div>
-                      <h5 className="font-semibold mb-2 text-purple-900">Faith-Informed</h5>
-                      <p className="text-sm text-gray-700">Ethical frameworks rooted in religious perspectives guide academic inquiry and professional practice.</p>
-                    </div>
-                    <div>
-                      <h5 className="font-semibold mb-2 text-indigo-900">Globally Focused</h5>
-                      <p className="text-sm text-gray-700">International perspectives and cross-cultural competencies prepare students for global leadership.</p>
-                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">Available Degree Programs</h2>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+
+                {collegePrograms.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {collegePrograms.slice(0, 6).map((program, index) => (
+                      <Card key={index} className="border-t-4 border-t-green-500 shadow-sm hover:shadow-md transition-shadow">
+                        <CardContent className="p-6">
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <GraduationCap className="w-6 h-6 text-purple-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                {program.name}
+                              </h3>
+                              <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getLevelColor(program.level)}`}>
+                                  {program.level}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <CreditCard className="w-4 h-4" />
+                                  {program.credits} Credits
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-4 h-4" />
+                                  {program.duration}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <Card className="border-0 shadow-sm">
+                    <CardContent className="p-12 text-center">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <GraduationCap className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No degree programs available</h3>
+                      <p className="text-gray-600">This college does not have any programs in our database yet.</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              {/* Section 2: Programs That Shape Your Future */}
+              <div>
+                <div className="text-center mb-6">
+                  <div className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-md text-sm font-medium mb-3">
+                    📚 Academic Programs Overview
+                  </div>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-3">Programs That Shape Your Future</h2>
+                  <p className="text-gray-600 max-w-2xl mx-auto">
+                    Choose from our diverse range of degree programs designed to meet your career goals
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                    <CardContent className="p-8 text-center">
+                      <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <GraduationCap className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="text-4xl font-bold text-gray-900 mb-2">{overallStats.bachelorPrograms}</div>
+                      <div className="text-gray-600 font-medium">Bachelor Programs</div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                    <CardContent className="p-8 text-center">
+                      <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <GraduationCap className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="text-4xl font-bold text-gray-900 mb-2">{overallStats.phdPrograms}</div>
+                      <div className="text-gray-600 font-medium">PhD Programs</div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                    <CardContent className="p-8 text-center">
+                      <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <GraduationCap className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="text-4xl font-bold text-gray-900 mb-2">{overallStats.masterPrograms}</div>
+                      <div className="text-gray-600 font-medium">Master Programs</div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                    <CardContent className="p-8 text-center">
+                      <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <GraduationCap className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="text-4xl font-bold text-gray-900 mb-2">{overallStats.associatePrograms}</div>
+                      <div className="text-gray-600 font-medium">Associate Programs</div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Section 3: Degree Program Outlines */}
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Degree Program Outlines</h2>
+                    <p className="text-gray-600 mt-1">Complete course outlines for all degree programs</p>
+                  </div>
+                </div>
+
+                {/* Search and Filter Bar */}
+                <Card className="border-0 shadow-sm mb-6">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row gap-4 items-end">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Search Degree Programs
+                        </label>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                          <Input
+                            type="text"
+                            placeholder="Search by degree title, department, or description..."
+                            value={programSearchQuery}
+                            onChange={(e) => setProgramSearchQuery(e.target.value)}
+                            className="pl-10 w-full"
+                          />
+                        </div>
+                      </div>
+                      <div className="w-full md:w-48">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Degree Level
+                        </label>
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowLevelDropdown(!showLevelDropdown)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 flex items-center justify-between"
+                          >
+                            <span className="text-sm font-medium text-gray-700">{selectedProgramLevel}</span>
+                            <ChevronDown className="w-4 h-4 text-gray-500" />
+                          </button>
+                          {showLevelDropdown && (
+                            <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                              {["All Levels", "Bachelor", "Master", "PhD", "Associate", "Doctorate"].map((level) => (
+                                <button
+                                  key={level}
+                                  onClick={() => {
+                                    setSelectedProgramLevel(level);
+                                    setShowLevelDropdown(false);
+                                  }}
+                                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                                >
+                                  {level}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <Button className="bg-black hover:bg-gray-800 gap-2">
+                        <Plus className="w-4 h-4" />
+                        Add Program Outline
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Program Outlines Grid */}
+                {filteredProgramOutlines.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredProgramOutlines.map((program, index) => (
+                      <Card key={index} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="h-2 bg-gradient-to-r from-green-400 to-green-600" />
+                        <CardContent className="p-6">
+                          <div className="mb-4">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-md ${getLevelColor(program.level)}`}>
+                              {program.level}
+                            </span>
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">
+                            {program.name}
+                          </h3>
+                          <div className="space-y-2 mb-4">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <BookOpen className="w-4 h-4" />
+                              <span>{program.college}</span>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm text-gray-600">
+                              <div className="flex items-center gap-1">
+                                <CreditCard className="w-4 h-4" />
+                                <span>{program.credits} credits</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock className="w-4 h-4" />
+                                <span>{program.duration}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="border-t border-gray-100 pt-4 mt-4">
+                            <button className="text-sm text-blue-600 hover:underline font-medium mb-3 block">
+                              📚 45 courses in outline
+                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleViewProgram(program)}
+                                className="flex-1 px-3 py-2 bg-black text-white rounded-md hover:bg-gray-800 text-sm font-medium flex items-center justify-center gap-2"
+                              >
+                                <Eye className="w-4 h-4" />
+                                View
+                              </button>
+                              <button
+                                onClick={() => handleDownloadProgram(program)}
+                                className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
+                                title="Download"
+                              >
+                                <Download className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleEditProgram(program)}
+                                className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
+                                title="Edit"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteProgram(program)}
+                                className="px-3 py-2 border border-red-300 text-red-600 rounded-md hover:bg-red-50 text-sm"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <Card className="border-0 shadow-sm">
+                    <CardContent className="p-12 text-center">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Search className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No programs found</h3>
+                      <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             </div>
           )}
 

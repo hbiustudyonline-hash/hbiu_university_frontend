@@ -3,17 +3,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
-  Award, 
   GraduationCap, 
-  Users, 
-  BookOpen, 
   Search,
-  Upload,
+  Download,
   Plus,
   Edit2,
   Trash2,
   ChevronDown,
-  X
+  Eye,
+  BookOpen,
+  Clock,
+  CreditCard
 } from "lucide-react";
 import Layout from "@/Layout";
 import { allPrograms } from "@/data/degreePrograms";
@@ -22,42 +22,11 @@ export default function ProgramsCatalog() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("All Levels");
   const [showLevelDropdown, setShowLevelDropdown] = useState(false);
-  const [editingProgram, setEditingProgram] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [programToDelete, setProgramToDelete] = useState(null);
 
-  // Handle edit button click
-  const handleEdit = (program) => {
-    setEditingProgram({ ...program });
-    setShowEditModal(true);
-  };
+  const levels = ["All Levels", "Bachelor", "Master", "PhD", "Associate"];
 
-  // Handle delete button click
-  const handleDeleteClick = (program) => {
-    setProgramToDelete(program);
-    setShowDeleteModal(true);
-  };
-
-  // Handle delete confirmation
-  const handleDeleteConfirm = () => {
-    // In a real app, this would make an API call to delete the program
-    console.log("Deleting program:", programToDelete);
-    alert(`Program "${programToDelete.name}" would be deleted. (This is a demo - actual deletion requires backend integration)`);
-    setShowDeleteModal(false);
-    setProgramToDelete(null);
-  };
-
-  // Handle save edited program
-  const handleSaveEdit = () => {
-    // In a real app, this would make an API call to update the program
-    console.log("Saving edited program:", editingProgram);
-    alert(`Program "${editingProgram.name}" would be updated. (This is a demo - actual updates require backend integration)`);
-    setShowEditModal(false);
-    setEditingProgram(null);
-  };
-
-  const levels = ["All Levels", "Bachelor", "Master", "PhD", "Doctorate", "Associate", "Certificate"];
+  // Sample college degree programs (you can replace with actual college data)
+  const collegeDegreePrograms = allPrograms.slice(0, 6);
 
   // Filter programs based on search and level
   const filteredPrograms = useMemo(() => {
@@ -71,15 +40,50 @@ export default function ProgramsCatalog() {
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const totalPrograms = allPrograms.length;
-    const activePrograms = allPrograms.filter(p => p.status === "Active").length;
     const bachelorPrograms = allPrograms.filter(p => p.level === "Bachelor").length;
-    const graduatePrograms = allPrograms.filter(p => 
-      p.level === "Master" || p.level === "PhD" || p.level === "Doctorate"
-    ).length;
+    const phdPrograms = allPrograms.filter(p => p.level === "PhD").length;
+    const masterPrograms = allPrograms.filter(p => p.level === "Master").length;
+    const associatePrograms = allPrograms.filter(p => p.level === "Associate").length;
 
-    return { totalPrograms, activePrograms, bachelorPrograms, graduatePrograms };
+    return { bachelorPrograms, phdPrograms, masterPrograms, associatePrograms };
   }, []);
+
+  const handleView = (program) => {
+    console.log("Viewing program:", program);
+    alert(`Viewing details for: ${program.name}`);
+  };
+
+  const handleEdit = (program) => {
+    console.log("Editing program:", program);
+    alert(`Editing: ${program.name}`);
+  };
+
+  const handleDelete = (program) => {
+    console.log("Deleting program:", program);
+    if (confirm(`Are you sure you want to delete "${program.name}"?`)) {
+      alert("Program would be deleted (demo mode)");
+    }
+  };
+
+  const handleDownload = (program) => {
+    console.log("Downloading program:", program);
+    alert(`Downloading outline for: ${program.name}`);
+  };
+
+  const getLevelColor = (level) => {
+    switch (level) {
+      case 'Bachelor':
+        return 'bg-green-100 text-green-700';
+      case 'Master':
+        return 'bg-orange-100 text-orange-700';
+      case 'PhD':
+        return 'bg-blue-100 text-blue-700';
+      case 'Associate':
+        return 'bg-purple-100 text-purple-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
 
   return (
     <Layout currentPageName="ProgramsCatalog">
@@ -109,361 +113,255 @@ export default function ProgramsCatalog() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto p-6">
-          {/* Page Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Degree Program Management</h1>
-            <p className="text-gray-600 mt-1">Manage all degree and certificate programs</p>
-          </div>
-
-          {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total Programs</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.totalPrograms}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Award className="w-6 h-6 text-blue-600" />
-                  </div>
+        <div className="max-w-7xl mx-auto p-6 space-y-8">
+          {/* Section 1: Available Degree Programs */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-md text-sm font-medium mb-2">
+                  🎓 Our Degrees
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Active Programs</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.activePrograms}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <GraduationCap className="w-6 h-6 text-green-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Bachelor Programs</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.bachelorPrograms}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                    <BookOpen className="w-6 h-6 text-purple-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Graduate Programs</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.graduatePrograms}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                    <Users className="w-6 h-6 text-orange-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Search and Filters */}
-          <Card className="border-0 shadow-sm mb-6">
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-                <div className="flex-1 w-full md:w-auto flex gap-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <Input
-                      type="text"
-                      placeholder="Search programs..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 w-full"
-                    />
-                  </div>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowLevelDropdown(!showLevelDropdown)}
-                      className="px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 flex items-center gap-2 min-w-[150px] justify-between"
-                    >
-                      <span className="text-sm font-medium text-gray-700">{selectedLevel}</span>
-                      <ChevronDown className="w-4 h-4 text-gray-500" />
-                    </button>
-                    {showLevelDropdown && (
-                      <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                        {levels.map((level) => (
-                          <button
-                            key={level}
-                            onClick={() => {
-                              setSelectedLevel(level);
-                              setShowLevelDropdown(false);
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
-                          >
-                            {level}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex gap-3 w-full md:w-auto">
-                  <Button variant="outline" className="gap-2 flex-1 md:flex-none">
-                    <Upload className="w-4 h-4" />
-                    Bulk Upload
-                  </Button>
-                  <Button className="gap-2 bg-gray-900 hover:bg-gray-800 flex-1 md:flex-none">
-                    <Plus className="w-4 h-4" />
-                    Add Program
-                  </Button>
-                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Available Degree Programs</h2>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Programs Table */}
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                All Programs ({filteredPrograms.length})
-              </h2>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Program Name</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Level</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">College</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Credits</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Duration</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredPrograms.map((program, index) => (
-                      <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-4 px-4 text-sm text-gray-900">{program.name}</td>
-                        <td className="py-4 px-4">
-                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                            program.level === 'Master' ? 'bg-orange-100 text-orange-700' :
-                            program.level === 'Bachelor' ? 'bg-purple-100 text-purple-700' :
-                            program.level === 'Certificate' ? 'bg-blue-100 text-blue-700' :
-                            program.level === 'PhD' ? 'bg-red-100 text-red-700' :
-                            program.level === 'Doctorate' ? 'bg-pink-100 text-pink-700' :
-                            'bg-green-100 text-green-700'
-                          }`}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {collegeDegreePrograms.map((program, index) => (
+                <Card key={index} className="border-t-4 border-t-green-500 shadow-sm hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <GraduationCap className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          {program.name}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getLevelColor(program.level)}`}>
                             {program.level}
                           </span>
-                        </td>
-                        <td className="py-4 px-4 text-sm text-gray-700">{program.college}</td>
-                        <td className="py-4 px-4 text-sm text-gray-700">{program.credits}</td>
-                        <td className="py-4 px-4 text-sm text-gray-700">{program.duration}</td>
-                        <td className="py-4 px-4">
-                          <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
-                            {program.status}
+                          <span className="flex items-center gap-1">
+                            <CreditCard className="w-4 h-4" />
+                            {program.credits} Credits
                           </span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="flex gap-2">
-                            <button 
-                              onClick={() => handleEdit(program)}
-                              className="p-1 hover:bg-gray-100 rounded text-blue-600" 
-                              title="Edit"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteClick(program)}
-                              className="p-1 hover:bg-gray-100 rounded text-red-600" 
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {filteredPrograms.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">No programs found matching your criteria.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {program.duration}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
 
-        {/* Edit Modal */}
-        {showEditModal && editingProgram && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-900">Edit Degree Program</h2>
-                <button
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingProgram(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+          {/* Section 2: Programs That Shape Your Future */}
+          <div>
+            <div className="text-center mb-6">
+              <div className="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-md text-sm font-medium mb-3">
+                📚 Academic Programs Overview
               </div>
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Program Name <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    value={editingProgram.name}
-                    onChange={(e) => setEditingProgram({ ...editingProgram, name: e.target.value })}
-                    className="w-full"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Level <span className="text-red-500">*</span>
+              <h2 className="text-3xl font-bold text-gray-900 mb-3">Programs That Shape Your Future</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Choose from our diverse range of degree programs designed to meet your career goals
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <GraduationCap className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="text-4xl font-bold text-gray-900 mb-2">{stats.bachelorPrograms}</div>
+                  <div className="text-gray-600 font-medium">Bachelor Programs</div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <GraduationCap className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="text-4xl font-bold text-gray-900 mb-2">{stats.phdPrograms}</div>
+                  <div className="text-gray-600 font-medium">PhD Programs</div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <GraduationCap className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="text-4xl font-bold text-gray-900 mb-2">{stats.masterPrograms}</div>
+                  <div className="text-gray-600 font-medium">Master Programs</div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <GraduationCap className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="text-4xl font-bold text-gray-900 mb-2">{stats.associatePrograms}</div>
+                  <div className="text-gray-600 font-medium">Associate Programs</div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Section 3: Degree Program Outlines */}
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Degree Program Outlines</h2>
+                <p className="text-gray-600 mt-1">Complete course outlines for all degree programs</p>
+              </div>
+            </div>
+
+            {/* Search and Filter Bar */}
+            <Card className="border-0 shadow-sm mb-6">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row gap-4 items-end">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Search Degree Programs
                     </label>
-                    <select
-                      value={editingProgram.level}
-                      onChange={(e) => setEditingProgram({ ...editingProgram, level: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="Certificate">Certificate</option>
-                      <option value="Associate">Associate</option>
-                      <option value="Bachelor">Bachelor</option>
-                      <option value="Master">Master</option>
-                      <option value="PhD">PhD</option>
-                      <option value="Doctorate">Doctorate</option>
-                    </select>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                      <Input
+                        type="text"
+                        placeholder="Search by degree title, department, or description..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10 w-full"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">College</label>
-                    <Input
-                      value={editingProgram.college}
-                      onChange={(e) => setEditingProgram({ ...editingProgram, college: e.target.value })}
-                      className="w-full"
-                    />
+                  <div className="w-full md:w-48">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Degree Level
+                    </label>
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowLevelDropdown(!showLevelDropdown)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 flex items-center justify-between"
+                      >
+                        <span className="text-sm font-medium text-gray-700">{selectedLevel}</span>
+                        <ChevronDown className="w-4 h-4 text-gray-500" />
+                      </button>
+                      {showLevelDropdown && (
+                        <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                          {levels.map((level) => (
+                            <button
+                              key={level}
+                              onClick={() => {
+                                setSelectedLevel(level);
+                                setShowLevelDropdown(false);
+                              }}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                            >
+                              {level}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
+                  <Button className="bg-black hover:bg-gray-800 gap-2">
+                    <Plus className="w-4 h-4" />
+                    Add Program Outline
+                  </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Credits Required</label>
-                    <Input
-                      type="number"
-                      value={editingProgram.credits}
-                      onChange={(e) => setEditingProgram({ ...editingProgram, credits: parseInt(e.target.value) })}
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Duration (Years)</label>
-                    <Input
-                      value={editingProgram.duration}
-                      onChange={(e) => setEditingProgram({ ...editingProgram, duration: e.target.value })}
-                      className="w-full"
-                      placeholder="e.g., 4 years, 2 years"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea
-                    value={editingProgram.description || ''}
-                    onChange={(e) => setEditingProgram({ ...editingProgram, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
-                    placeholder="Enter program description..."
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="activeStatus"
-                    checked={editingProgram.status === "Active"}
-                    onChange={(e) => setEditingProgram({ 
-                      ...editingProgram, 
-                      status: e.target.checked ? "Active" : "Inactive" 
-                    })}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <label htmlFor="activeStatus" className="text-sm font-medium text-gray-700">
-                    Active (available for selection)
-                  </label>
-                </div>
-              </div>
-              <div className="flex gap-3 justify-end p-6 border-t border-gray-200">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingProgram(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSaveEdit}
-                  className="bg-gray-900 hover:bg-gray-800"
-                >
-                  Update Program
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+              </CardContent>
+            </Card>
 
-        {/* Delete Confirmation Modal */}
-        {showDeleteModal && programToDelete && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-              <div className="p-6">
-                <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
-                  <Trash2 className="w-6 h-6 text-red-600" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900 text-center mb-2">Delete Program</h2>
-                <p className="text-gray-600 text-center mb-4">
-                  Are you sure you want to delete the program:
-                </p>
-                <p className="text-gray-900 font-semibold text-center mb-6">
-                  "{programToDelete.name}"
-                </p>
-                <p className="text-sm text-gray-500 text-center mb-6">
-                  This action cannot be undone.
-                </p>
-              </div>
-              <div className="flex gap-3 justify-end p-6 border-t border-gray-200">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowDeleteModal(false);
-                    setProgramToDelete(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleDeleteConfirm}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  Delete Program
-                </Button>
-              </div>
+            {/* Program Outlines Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPrograms.map((program, index) => (
+                <Card key={index} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="h-2 bg-gradient-to-r from-green-400 to-green-600" />
+                  <CardContent className="p-6">
+                    <div className="mb-4">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-md ${getLevelColor(program.level)}`}>
+                        {program.level}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">
+                      {program.name}
+                    </h3>
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <BookOpen className="w-4 h-4" />
+                        <span>{program.college}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <CreditCard className="w-4 h-4" />
+                          <span>{program.credits} credits</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          <span>{program.duration}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="border-t border-gray-100 pt-4 mt-4">
+                      <button className="text-sm text-blue-600 hover:underline font-medium mb-3 block">
+                        📚 45 courses in outline
+                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleView(program)}
+                          className="flex-1 px-3 py-2 bg-black text-white rounded-md hover:bg-gray-800 text-sm font-medium flex items-center justify-center gap-2"
+                        >
+                          <Eye className="w-4 h-4" />
+                          View
+                        </button>
+                        <button
+                          onClick={() => handleDownload(program)}
+                          className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
+                          title="Download"
+                        >
+                          <Download className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleEdit(program)}
+                          className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(program)}
+                          className="px-3 py-2 border border-red-300 text-red-600 rounded-md hover:bg-red-50 text-sm"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
+
+            {filteredPrograms.length === 0 && (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-12 text-center">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Search className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No programs found</h3>
+                  <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </Layout>
   );
