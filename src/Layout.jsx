@@ -134,7 +134,7 @@ export default function Layout({ children, currentPageName }) {
     },
     {
       title: "Programs Catalog",
-      url: createPageUrl("ProgramsCatalog"),
+      url: createPageUrl("Programs"),
       icon: Award,
       badge: "Public"
     },

@@ -8,6 +8,8 @@ import CourseDetail from "./course-detail";
 import EnrollmentDashboard from "./EnrollmentDashboard";
 import Colleges from "./Colleges";
 import VirtualAdminOffice from "./VirtualAdminOffice";
+import ProgramsCatalog from "./ProgramsCatalog";
+import Programs from "./Programs";
 // import CollegeAdminDashboard from "./CollegeAdminDashboard"; // Temporarily disabled
 import LoginTest from "./LoginTest";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -134,6 +136,26 @@ export default function Pages() {
           element={
             <ProtectedRoute allowedRoles={['admin', 'lecturer']}>
               <VirtualAdminOffice />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/programs" 
+          element={<Programs />}
+        />
+        <Route 
+          path="/ProgramsCatalog" 
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'lecturer']}>
+              <ProgramsCatalog />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/degree-program-management" 
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'lecturer']}>
+              <ProgramsCatalog />
             </ProtectedRoute>
           } 
         />

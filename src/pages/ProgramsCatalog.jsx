@@ -12,7 +12,8 @@ import {
   Plus,
   Edit2,
   Trash2,
-  ChevronDown
+  ChevronDown,
+  X
 } from "lucide-react";
 import Layout from "@/Layout";
 import { allPrograms } from "@/data/degreePrograms";
@@ -21,6 +22,40 @@ export default function ProgramsCatalog() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("All Levels");
   const [showLevelDropdown, setShowLevelDropdown] = useState(false);
+  const [editingProgram, setEditingProgram] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [programToDelete, setProgramToDelete] = useState(null);
+
+  // Handle edit button click
+  const handleEdit = (program) => {
+    setEditingProgram({ ...program });
+    setShowEditModal(true);
+  };
+
+  // Handle delete button click
+  const handleDeleteClick = (program) => {
+    setProgramToDelete(program);
+    setShowDeleteModal(true);
+  };
+
+  // Handle delete confirmation
+  const handleDeleteConfirm = () => {
+    // In a real app, this would make an API call to delete the program
+    console.log("Deleting program:", programToDelete);
+    alert(`Program "${programToDelete.name}" would be deleted. (This is a demo - actual deletion requires backend integration)`);
+    setShowDeleteModal(false);
+    setProgramToDelete(null);
+  };
+
+  // Handle save edited program
+  const handleSaveEdit = () => {
+    // In a real app, this would make an API call to update the program
+    console.log("Saving edited program:", editingProgram);
+    alert(`Program "${editingProgram.name}" would be updated. (This is a demo - actual updates require backend integration)`);
+    setShowEditModal(false);
+    setEditingProgram(null);
+  };
 
   const levels = ["All Levels", "Bachelor", "Master", "PhD", "Doctorate", "Associate", "Certificate"];
 
@@ -240,10 +275,18 @@ export default function ProgramsCatalog() {
                         </td>
                         <td className="py-4 px-4">
                           <div className="flex gap-2">
-                            <button className="p-1 hover:bg-gray-100 rounded text-blue-600" title="Edit">
+                            <button 
+                              onClick={() => handleEdit(program)}
+                              className="p-1 hover:bg-gray-100 rounded text-blue-600" 
+                              title="Edit"
+                            >
                               <Edit2 className="w-4 h-4" />
                             </button>
-                            <button className="p-1 hover:bg-gray-100 rounded text-red-600" title="Delete">
+                            <button 
+                              onClick={() => handleDeleteClick(program)}
+                              className="p-1 hover:bg-gray-100 rounded text-red-600" 
+                              title="Delete"
+                            >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
@@ -261,6 +304,166 @@ export default function ProgramsCatalog() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Edit Modal */}
+        {showEditModal && editingProgram && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900">Edit Degree Program</h2>
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingProgram(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Program Name <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    value={editingProgram.name}
+                    onChange={(e) => setEditingProgram({ ...editingProgram, name: e.target.value })}
+                    className="w-full"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Level <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={editingProgram.level}
+                      onChange={(e) => setEditingProgram({ ...editingProgram, level: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="Certificate">Certificate</option>
+                      <option value="Associate">Associate</option>
+                      <option value="Bachelor">Bachelor</option>
+                      <option value="Master">Master</option>
+                      <option value="PhD">PhD</option>
+                      <option value="Doctorate">Doctorate</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">College</label>
+                    <Input
+                      value={editingProgram.college}
+                      onChange={(e) => setEditingProgram({ ...editingProgram, college: e.target.value })}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Credits Required</label>
+                    <Input
+                      type="number"
+                      value={editingProgram.credits}
+                      onChange={(e) => setEditingProgram({ ...editingProgram, credits: parseInt(e.target.value) })}
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Duration (Years)</label>
+                    <Input
+                      value={editingProgram.duration}
+                      onChange={(e) => setEditingProgram({ ...editingProgram, duration: e.target.value })}
+                      className="w-full"
+                      placeholder="e.g., 4 years, 2 years"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    value={editingProgram.description || ''}
+                    onChange={(e) => setEditingProgram({ ...editingProgram, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                    placeholder="Enter program description..."
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="activeStatus"
+                    checked={editingProgram.status === "Active"}
+                    onChange={(e) => setEditingProgram({ 
+                      ...editingProgram, 
+                      status: e.target.checked ? "Active" : "Inactive" 
+                    })}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="activeStatus" className="text-sm font-medium text-gray-700">
+                    Active (available for selection)
+                  </label>
+                </div>
+              </div>
+              <div className="flex gap-3 justify-end p-6 border-t border-gray-200">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingProgram(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveEdit}
+                  className="bg-gray-900 hover:bg-gray-800"
+                >
+                  Update Program
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && programToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="p-6">
+                <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+                  <Trash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 text-center mb-2">Delete Program</h2>
+                <p className="text-gray-600 text-center mb-4">
+                  Are you sure you want to delete the program:
+                </p>
+                <p className="text-gray-900 font-semibold text-center mb-6">
+                  "{programToDelete.name}"
+                </p>
+                <p className="text-sm text-gray-500 text-center mb-6">
+                  This action cannot be undone.
+                </p>
+              </div>
+              <div className="flex gap-3 justify-end p-6 border-t border-gray-200">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setProgramToDelete(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleDeleteConfirm}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Delete Program
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   );
