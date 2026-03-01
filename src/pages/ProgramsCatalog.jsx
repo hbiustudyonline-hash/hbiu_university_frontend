@@ -2,6 +2,22 @@ import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   GraduationCap, 
   Search,
@@ -13,7 +29,10 @@ import {
   Eye,
   BookOpen,
   Clock,
-  CreditCard
+  CreditCard,
+  Award,
+  CheckCircle,
+  FileText
 } from "lucide-react";
 import Layout from "@/Layout";
 import { allPrograms } from "@/data/degreePrograms";
@@ -22,11 +41,28 @@ export default function ProgramsCatalog() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("All Levels");
   const [showLevelDropdown, setShowLevelDropdown] = useState(false);
+  const [showAddProgramDialog, setShowAddProgramDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [viewingProgram, setViewingProgram] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingProgram, setEditingProgram] = useState(null);
+  const [programFormData, setProgramFormData] = useState({
+    title: "",
+    level: "",
+    department: "",
+    credits: "",
+    duration: "",
+    description: ""
+  });
 
   const levels = ["All Levels", "Bachelor", "Master", "PhD", "Associate"];
 
-  // Sample college degree programs (you can replace with actual college data)
-  const collegeDegreePrograms = allPrograms.slice(0, 6);
+  // College of International Studies degree programs
+  const collegeDegreePrograms = useMemo(() => {
+    return allPrograms.filter(program => 
+      program.college === "College of International Studies"
+    );
+  }, []);
 
   // Filter programs based on search and level
   const filteredPrograms = useMemo(() => {
@@ -50,12 +86,37 @@ export default function ProgramsCatalog() {
 
   const handleView = (program) => {
     console.log("Viewing program:", program);
-    alert(`Viewing details for: ${program.name}`);
+    setViewingProgram(program);
+    setShowViewDialog(true);
   };
 
   const handleEdit = (program) => {
     console.log("Editing program:", program);
-    alert(`Editing: ${program.name}`);
+    setIsEditMode(true);
+    setEditingProgram(program);
+    setProgramFormData({
+      title: program.name || "",
+      level: program.level || "",
+      department: program.college || "",
+      credits: program.credits?.toString() || "",
+      duration: program.duration || "",
+      description: program.description || ""
+    });
+    setShowAddProgramDialog(true);
+  };
+
+  const handleAddNew = () => {
+    setIsEditMode(false);
+    setEditingProgram(null);
+    setProgramFormData({
+      title: "",
+      level: "",
+      department: "",
+      credits: "",
+      duration: "",
+      description: ""
+    });
+    setShowAddProgramDialog(true);
   };
 
   const handleDelete = (program) => {
@@ -271,7 +332,10 @@ export default function ProgramsCatalog() {
                       )}
                     </div>
                   </div>
-                  <Button className="bg-black hover:bg-gray-800 gap-2">
+                  <Button 
+                    className="bg-black hover:bg-gray-800 gap-2"
+                    onClick={handleAddNew}
+                  >
                     <Plus className="w-4 h-4" />
                     Add Program Outline
                   </Button>
@@ -363,6 +427,337 @@ export default function ProgramsCatalog() {
           </div>
         </div>
       </div>
+
+      {/* Add Program Outline Dialog */}
+      <Dialog open={showAddProgramDialog} onOpenChange={setShowAddProgramDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{isEditMode ? 'Edit' : 'Add'} Degree Program Outline</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="title">Degree Title *</Label>
+                <Input
+                  id="title"
+                  value={programFormData.title}
+                  onChange={(e) => setProgramFormData({...programFormData, title: e.target.value})}
+                  placeholder="e.g., Bachelor of Science in Global Trade & Economics..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="level">Degree Level *</Label>
+                <Select 
+                  value={programFormData.level} 
+                  onValueChange={(value) => setProgramFormData({...programFormData, level: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Bachelor">Bachelor</SelectItem>
+                    <SelectItem value="Master">Master</SelectItem>
+                    <SelectItem value="PhD">PhD</SelectItem>
+                    <SelectItem value="Doctorate">Doctorate</SelectItem>
+                    <SelectItem value="Associate">Associate</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="department">Department</Label>
+                <Input
+                  id="department"
+                  value={programFormData.department}
+                  onChange={(e) => setProgramFormData({...programFormData, department: e.target.value})}
+                  placeholder="e.g., Trade & Economics"
+                />
+              </div>
+              <div>
+                <Label htmlFor="credits">Total Credits *</Label>
+                <Input
+                  id="credits"
+                  type="number"
+                  value={programFormData.credits}
+                  onChange={(e) => setProgramFormData({...programFormData, credits: e.target.value})}
+                  placeholder="120"
+                />
+              </div>
+              <div>
+                <Label htmlFor="duration">Duration (Years)</Label>
+                <Input
+                  id="duration"
+                  type="number"
+                  value={programFormData.duration}
+                  onChange={(e) => setProgramFormData({...programFormData, duration: e.target.value})}
+                  placeholder="4"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="description">Program Description</Label>
+              <Textarea
+                id="description"
+                value={programFormData.description}
+                onChange={(e) => setProgramFormData({...programFormData, description: e.target.value})}
+                placeholder="Provide a comprehensive description of the degree program..."
+                rows={6}
+              />
+            </div>
+
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <Award className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-purple-900 mb-1">AI Program Builder</h4>
+                  <p className="text-sm text-purple-700 mb-2">
+                    Generate comprehensive program details and auto-select all linked courses.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-purple-300 text-purple-700 hover:bg-purple-100"
+                    onClick={() => {
+                      alert('AI Program Builder feature coming soon! This will automatically generate program details and course selections.');
+                    }}
+                  >
+                    🤖 Generate Complete Program
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Courses Section */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  Select Courses for This Program (45 selected)
+                </h3>
+                <Button variant="outline" size="sm" className="text-xs">
+                  <ChevronDown className="w-3 h-3 mr-1" />
+                  Show Manual Ordering
+                </Button>
+              </div>
+              
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div className="grid gap-2 max-h-64 overflow-y-auto">
+                  {[
+                    { code: "IRD 358", name: "Intelligence & Foreign Policy", level: "Bachelor" },
+                    { code: "IRD 356", name: "International Trade Policy", level: "Bachelor" },
+                    { code: "GTE 359", name: "Global Financial Crises", level: "Bachelor" },
+                    { code: "SCM 310", name: "Global Supply Chain Management", level: "Bachelor" },
+                    { code: "GTE 320", name: "Global Markets & Competition", level: "Bachelor" },
+                  ].map((course, index) => (
+                    <div key={index} className="flex items-center gap-3 bg-white p-3 rounded border border-gray-200 hover:border-blue-300 transition-colors">
+                      <input type="checkbox" defaultChecked className="w-4 h-4 text-blue-600" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-900">{course.code}</span>
+                          <span className="text-sm text-gray-600">- {course.name}</span>
+                        </div>
+                      </div>
+                      <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                        {course.level}
+                      </span>
+                    </div>
+                  ))}
+                  <div className="text-center py-3 text-sm text-gray-500">
+                    ... and 40 more courses
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddProgramDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => {
+                if (isEditMode) {
+                  alert(`Updated program: ${programFormData.title}\n\nSave functionality will be implemented to update the program in the database.`);
+                  console.log('Updating program:', editingProgram, 'with data:', programFormData);
+                } else {
+                  alert(`Created new program: ${programFormData.title}\n\nSave functionality will be implemented to store the program in the database.`);
+                  console.log('Creating program data:', programFormData);
+                }
+                setShowAddProgramDialog(false);
+              }}
+            >
+              {isEditMode ? 'Update Program' : 'Save Program'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Program Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Degree Program Outline</DialogTitle>
+          </DialogHeader>
+          {viewingProgram && (
+            <div className="space-y-6">
+              {/* Program Header */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-100">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      {viewingProgram.name}
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-3 text-sm">
+                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-md ${getLevelColor(viewingProgram.level)}`}>
+                        {viewingProgram.level}
+                      </span>
+                      <span className="flex items-center gap-1 text-gray-600">
+                        <BookOpen className="w-4 h-4" />
+                        {viewingProgram.college}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  <div className="bg-white rounded-lg p-3 border border-gray-200">
+                    <div className="text-sm text-gray-500 mb-1">Total Credits</div>
+                    <div className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-blue-600" />
+                      {viewingProgram.credits}
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-gray-200">
+                    <div className="text-sm text-gray-500 mb-1">Duration</div>
+                    <div className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-purple-600" />
+                      {viewingProgram.duration}
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-gray-200">
+                    <div className="text-sm text-gray-500 mb-1">Status</div>
+                    <div className="text-xl font-bold text-green-600 flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5" />
+                      Active
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* AI Program Builder Section */}
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <Award className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-purple-900 mb-1">🤖 AI Program Builder</h4>
+                    <p className="text-sm text-purple-700 mb-3">
+                      Generate comprehensive program details and auto-select all linked courses.
+                    </p>
+                    <div className="bg-green-50 border border-green-200 rounded p-3 mb-3">
+                      <p className="text-sm text-green-800 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" />
+                        <strong>45 courses found</strong> with the degree program "Bachelor of Science in Global Trade & Economics with a Minor in Interfaith Studies". These will be auto-selected.
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="border-purple-300 text-purple-700 hover:bg-purple-100"
+                      onClick={() => {
+                        alert('Generating complete program with all linked courses...');
+                      }}
+                    >
+                      🪄 Generate Complete Program
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Program Description */}
+              {viewingProgram.description && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Program Description
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    {viewingProgram.description || "This program equips students with a solid understanding of international trade dynamics, economic theories, and ethical implications of global economic policies. Students will learn to analyze market trends, assess trade regulations, and understand the socio-economic factors influencing global commerce."}
+                  </p>
+                </div>
+              )}
+
+              {/* Courses Section */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4" />
+                    Select Courses for This Program (45 selected)
+                  </h3>
+                  <Button variant="outline" size="sm" className="text-xs">
+                    <ChevronDown className="w-3 h-3 mr-1" />
+                    Show Manual Ordering
+                  </Button>
+                </div>
+                
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <div className="grid gap-2 max-h-64 overflow-y-auto">
+                    {[
+                      { code: "IRD 358", name: "Intelligence & Foreign Policy", level: "Bachelor" },
+                      { code: "IRD 356", name: "International Trade Policy", level: "Bachelor" },
+                      { code: "GTE 359", name: "Global Financial Crises", level: "Bachelor" },
+                      { code: "SCM 310", name: "Global Supply Chain Management", level: "Bachelor" },
+                      { code: "GTE 320", name: "Global Markets & Competition", level: "Bachelor" },
+                    ].map((course, index) => (
+                      <div key={index} className="flex items-center gap-3 bg-white p-3 rounded border border-gray-200 hover:border-blue-300 transition-colors">
+                        <input type="checkbox" defaultChecked className="w-4 h-4 text-blue-600" />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-900">{course.code}</span>
+                            <span className="text-sm text-gray-600">- {course.name}</span>
+                          </div>
+                        </div>
+                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                          {course.level}
+                        </span>
+                      </div>
+                    ))}
+                    <div className="text-center py-3 text-sm text-gray-500">
+                      ... and 40 more courses
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="flex justify-between items-center">
+            <div className="text-sm text-gray-500">
+              Last updated: {new Date().toLocaleDateString()}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                Close
+              </Button>
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => {
+                  setShowViewDialog(false);
+                  handleEdit(viewingProgram);
+                }}
+              >
+                <Edit2 className="w-4 h-4 mr-2" />
+                Edit Program
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

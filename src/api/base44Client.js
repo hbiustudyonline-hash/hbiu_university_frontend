@@ -53,51 +53,61 @@ const normalizeCollegeName = (collegeName) => {
 
 // Map college names to IDs
 const getCollegeIdByName = (collegeName) => {
-  const normalizedName = normalizeCollegeName(collegeName);
+  // First apply the name mapping, then lowercase for lookup
+  const mappedName = normalizeCollegeName(collegeName);
+  const normalizedName = mappedName
+    .replace(/[&,]/g, '') // Remove & and commas
+    .replace(/\s+/g, ' ')  // Normalize whitespace
+    .trim()
+    .toLowerCase();
+  
+  // Map uses normalized keys (lowercase, no punctuation) to match properly
   const collegeMap = {
     // Based on exact order from Colleges.jsx
-    'College of International Studies': '1', // id: 1
-    'College of Aviation': '2', // id: 2
-    'College of Chaplaincy': '3', // id: 3
-    'College of Naturopathic Medicine': '4', // id: 4
-    'College of Addiction Counseling': '5', // id: 5
-    'College of Agriculture and Natural Resources': '6', // id: 6
-    'College of Architecture Arts and Design': '7', // id: 7
-    'College of Arts and Humanities': '8', // id: 8
-    'College of Behavioral Social Science': '9', // id: 9
-    'College of Business Economics': '10', // id: 10
-    'College of Business and Project Management': '11', // id: 11
-    'College of Communication and Media': '12', // id: 12
-    'College of Computer Science': '13', // id: 13
-    'College of Earth Science and Industrial Technologies': '14', // id: 14
-    'College of Education and Human Development': '15', // id: 15
-    'College of Health Science': '16', // id: 16
-    'College of Law and Public Policy': '17', // id: 17
-    'College of Leadership': '18', // id: 18
-    'College of Performing Arts': '19', // id: 19
-    'College of Science and Engineering': '20', // id: 20
-    'College of Science and Psychology': '21', // id: 21
-    'College of Science and Social Science': '22', // id: 22
-    'College of Social Science and Humanitarianism': '23', // id: 23
-    'College of Tourism Hospitality Management': '24', // id: 24
-    'College of Virtual and Performing Arts': '25', // id: 25
-    'Culinary Institution College': '26', // id: 26
-    'HBIU College of Coaching': '27', // id: 27
-    'HBIU College of Fashion Design': '28', // id: 28
-    'HBIU College for Prior Learning': '29', // id: 29
-    'HBIU Medical Training Institute': '30', // id: 30
-    'HBIU Seminary': '31', // id: 31
-    'HBIU Training Institute': '32', // id: 32
-    'Certificate Courses': '33', // id: 33
-    'HBI Heart Royalty International Academy': '34', // id: 34
-    'College Preparatory High School': '35', // id: 35
-    'College of Cosmetology': '36', // id: 36
-    'College of Nature': '37' // id: 37
+    'college of international studies': '1', // id: 1
+    'college of aviation': '2', // id: 2
+    'college of chaplaincy': '3', // id: 3
+    'college of naturopathic medicine': '4', // id: 4
+    'college of addiction counseling': '5', // id: 5
+    'college of agriculture and natural resources': '6', // id: 6
+    'college of architecture arts and design': '7', // id: 7
+    'college of arts and humanities': '8', // id: 8
+    'college of behavioral social science': '9', // id: 9
+    'college of business economics': '10', // id: 10
+    'college of business and project management': '11', // id: 11
+    'college of communication and media': '12', // id: 12
+    'college of computer science': '13', // id: 13
+    'college of earth science and industrial technologies': '14', // id: 14
+    'college of education and human development': '15', // id: 15
+    'college of health science': '16', // id: 16
+    'college of law and public policy': '17', // id: 17
+    'college of leadership': '18', // id: 18
+    'college of performing arts': '19', // id: 19
+    'college of science and engineering': '20', // id: 20
+    'college of science and psychology': '21', // id: 21
+    'college of science and social science': '22', // id: 22
+    'college of social science and humanitarianism': '23', // id: 23
+    'college of tourism hospitality management': '24', // id: 24
+    'college of virtual and performing arts': '25', // id: 25
+    'culinary institution college': '26', // id: 26
+    'hbiu college of coaching': '27', // id: 27
+    'hbiu college of fashion design': '28', // id: 28
+    'hbiu college for prior learning': '29', // id: 29
+    'hbiu medical training institute': '30', // id: 30
+    'hbiu seminary': '31', // id: 31
+    'hbiu training institute': '32', // id: 32
+    'certificate courses': '33', // id: 33
+    'hbi heart royalty international academy': '34', // id: 34
+    'college preparatory high school': '35', // id: 35
+    'college of cosmetology': '36', // id: 36
+    'college of nature': '37' // id: 37
   };
   
   const mappedId = collegeMap[normalizedName];
   if (!mappedId) {
-    console.warn('[getCollegeIdByName] No mapping found for:', normalizedName, '- Original name:', collegeName);
+    console.warn('[getCollegeIdByName] No mapping found for normalized:', normalizedName, '- Original:', collegeName, '- Mapped:', mappedName);
+  } else {
+    console.log('[getCollegeIdByName] ✓ Mapped', collegeName, '→ ID', mappedId);
   }
   return mappedId || '1'; // Default to college 1 if not found
 };
@@ -491,11 +501,26 @@ export const base44 = {
           
           // Debug: Show distribution of courses by college_id
           const collegeDistribution = {};
+          const collegeNameDistribution = {};
           allCourses.forEach(c => {
             const id = c.college_id || 'undefined';
+            const name = c.college?.name || 'Unknown';
             collegeDistribution[id] = (collegeDistribution[id] || 0) + 1;
+            collegeNameDistribution[name] = (collegeNameDistribution[name] || 0) + 1;
           });
           console.log('[Course.list] Courses per college_id:', collegeDistribution);
+          console.log('[Course.list] College of International Studies courses:', collegeNameDistribution['College of International Studies'] || 0);
+          
+          // Show sample International Studies courses
+          const intlStudiesCourses = allCourses.filter(c => c.college?.name === 'College of International Studies');
+          if (intlStudiesCourses.length > 0) {
+            console.log('[Course.list] Sample International Studies courses:', intlStudiesCourses.slice(0, 3).map(c => ({
+              code: c.code,
+              title: c.title,
+              college_id: c.college_id,
+              college_name: c.college?.name
+            })));
+          }
           
           return Promise.resolve(allCourses);
         }
@@ -745,5 +770,16 @@ export const base44 = {
         });
       }
     }
+  },
+  
+  // Shortcut for easier access (base44.Course instead of base44.entities.Course)
+  get Course() {
+    return this.entities.Course;
+  },
+  get College() {
+    return this.entities.College;
+  },
+  get AIInstructor() {
+    return this.entities.AIInstructor;
   }
 };

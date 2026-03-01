@@ -265,7 +265,7 @@ export default function EnrollmentDashboard() {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [filters, setFilters] = useState({ // Consolidated search/filter state
     search: '',
-    college: 'all',
+    college: 'all', // Will be set to user's college on mount
     program: 'all',
     semester: 'all'
   });
@@ -282,6 +282,9 @@ export default function EnrollmentDashboard() {
       setUser(user);
       if (!user.program || !user.college_id) {
         setShowProgramDialog(true);
+      } else {
+        // Set default college filter to student's college
+        setFilters(prev => ({ ...prev, college: user.college_id }));
       }
     }).catch(() => {});
   }, []);
