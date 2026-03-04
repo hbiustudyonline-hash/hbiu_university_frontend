@@ -95,18 +95,51 @@ export default function LecturerCourses({ courses = [], user, isAdmin }) {
 
   // Create mutations
   const createCourseMutation = useMutation({
-    mutationFn: (courseData) => {
+    mutationFn: async (courseData) => {
+      console.log('🚀 Creating course with data:', courseData);
+      console.log('👤 Current user:', user);
+      console.log('🔑 User role:', user?.role);
+      console.log('🎫 Auth token:', localStorage.getItem('token')?.substring(0, 50) + '...');
+      
       // Set instructor to current user if not admin
       if (!isAdmin) {
         courseData.instructor = user?.email;
         courseData.instructor_name = user?.full_name;
       }
+      
+      // Check if college_id is a string (college name) - if so, try to find the college ID
+      if (courseData.college_id && typeof courseData.college_id === 'string' && isNaN(courseData.college_id)) {
+        console.log('🏛️ College is a name, not an ID. Looking for college:', courseData.college_id);
+        
+        // Store the college name
+        const collegeName = courseData.college_id;
+        
+        // Try to find the college by name
+        const college = colleges.find(c => c.name === collegeName);
+        
+        if (college) {
+          // College exists in DB, use its ID
+          courseData.college_id = college.id;
+          console.log('✅ Found college in DB with ID:', college.id);
+        } else {
+          // College doesn't exist in DB yet - set college_id to null and keep college_name
+          console.log('⚠️ College not in DB yet, will create course with college_name only');
+          courseData.college_id = null;
+          courseData.college_name = collegeName;
+        }
+      }
+      
       return base44.entities.Course.create(courseData);
     },
     onSuccess: (newCourse) => {
       console.log('✅ Course created successfully:', newCourse);
       queryClient.invalidateQueries({ queryKey: ['all-courses-for-dashboard'] });
       setShowCreateDialog(false);
+    },
+    onError: (error) => {
+      console.error('❌ Failed to create course:', error);
+      console.error('Error details:', error.response?.data || error.message);
+      alert(`Failed to create course: ${error.response?.data?.message || error.message}`);
     },
   });
 
@@ -421,7 +454,13 @@ export default function LecturerCourses({ courses = [], user, isAdmin }) {
         open={showCreateDialog}
         onClose={() => setShowCreateDialog(false)}
         onSubmit={async (courseData) => {
-          await createCourseMutation.mutateAsync(courseData);
+          try {
+            console.log('📤 Submitting course data:', courseData);
+            await createCourseMutation.mutateAsync(courseData);
+            console.log('🎉 Course created and dialog will close');
+          } catch (error) {
+            console.error('💥 Error in onSubmit:', error);
+          }
         }}
         isLoading={createCourseMutation.isPending}
         lecturers={lecturers}

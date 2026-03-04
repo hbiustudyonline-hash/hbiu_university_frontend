@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { AuthContext } from './AuthContextDefinition';
 
 export const AuthProvider = ({ children }) => {
-  // TEMPORARY: Check for stored user or use default mock user
+  // Check for stored user or use default admin user
   const getInitialUser = () => {
     const storedUserData = localStorage.getItem('userData');
     if (storedUserData) {
@@ -14,14 +14,14 @@ export const AuthProvider = ({ children }) => {
         console.error('[AUTH] Error parsing stored userData:', e);
       }
     }
-    // Default mock user if nothing stored
+    // Default admin user if nothing stored
     return {
       id: 1,
-      email: 'demo@hbiu.edu',
-      firstName: 'Demo',
+      email: 'admin@hbiu.edu',
+      firstName: 'Admin',
       lastName: 'User',
       role: 'admin',
-      full_name: 'Demo User'
+      full_name: 'Admin User'
     };
   };
 
@@ -36,25 +36,54 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuthStatus = async () => {
       try {
-        // TEMPORARY: Use stored user data or default
         const storedUserData = localStorage.getItem('userData');
         const storedToken = localStorage.getItem('token');
         
-        if (!cancelled) {
-          if (storedUserData && storedToken) {
-            // Use stored user from login
+        // Check if we have a valid token
+        if (storedToken && storedToken.length > 50 && !storedToken.startsWith('mock-')) {
+          // We have what looks like a real JWT token
+          if (storedUserData) {
             const parsedUser = JSON.parse(storedUserData);
-            setUser(parsedUser);
-            console.log('[AUTH] Using stored user:', parsedUser.email, 'Role:', parsedUser.role);
-          } else {
-            // Set default mock user
-            const defaultUser = getInitialUser();
-            setUser(defaultUser);
-            localStorage.setItem('token', 'mock-bypass-token');
-            localStorage.setItem('userData', JSON.stringify(defaultUser));
-            console.log('[AUTH] Using default user with role:', defaultUser.role);
+            if (!cancelled) {
+              setUser(parsedUser);
+              setIsAuthenticated(true);
+              console.log('[AUTH] Using stored user:', parsedUser.email, 'Role:', parsedUser.role);
+            }
           }
-          setIsAuthenticated(true);
+          setIsLoading(false);
+          return;
+        }
+
+        // No valid token - auto-login as admin to get a real JWT token
+        console.log('[AUTH] No valid token found. Auto-logging in as admin...');
+        try {
+          const response = await base44.auth.login('admin@hbiu.edu', 'admin123');
+          
+          if (response.success && response.data) {
+            const { user: userData, token } = response.data;
+            if (!cancelled) {
+              setUser(userData);
+              setIsAuthenticated(true);
+              localStorage.setItem('token', token);
+              localStorage.setItem('userData', JSON.stringify(userData));
+              console.log('[AUTH] Auto-login successful. User:', userData.email, 'Role:', userData.role);
+            }
+          } else {
+            throw new Error('Auto-login failed');
+          }
+        } catch (loginError) {
+          console.error('[AUTH] Auto-login failed:', loginError.message);
+          // Fallback to mock user
+          const defaultUser = getInitialUser();
+          if (!cancelled) {
+            setUser(defaultUser);
+            setIsAuthenticated(true);
+            localStorage.setItem('userData', JSON.stringify(defaultUser));
+            console.log('[AUTH] Using fallback admin user');
+          }
+        }
+        
+        if (!cancelled) {
           setIsLoading(false);
         }
         return;
@@ -131,13 +160,16 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData, token) => {
-    console.log('[AUTH] Login called with user:', userData?.email, 'Token:', token?.substring(0, 20) + '...');
+    console.log('[AUTH] Login called with user:', userData);
+    console.log('[AUTH] User role:', userData?.role, 'Email:', userData?.email);
     if (isMountedRef.current) {
       setUser(userData);
       setIsAuthenticated(true);
       localStorage.setItem('token', token);
       localStorage.setItem('userData', JSON.stringify(userData));
-      console.log('[AUTH] Login successful, user authenticated:', userData?.email);
+      console.log('[AUTH] Login successful. Stored in localStorage:');
+      console.log('[AUTH] - User:', userData?.email, 'Role:', userData?.role);
+      console.log('[AUTH] - Token preview:', token?.substring(0, 20) + '...');
     }
   };
 

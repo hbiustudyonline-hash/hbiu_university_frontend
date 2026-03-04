@@ -292,10 +292,10 @@ export default function Layout({ children, currentPageName }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-gray-900 text-sm truncate">
-                    {user?.full_name || 'User'}
+                    {user?.full_name || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'User'}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {user?.role === 'admin' ? 'Lecturer' : 'Student'}
+                  <p className="text-xs text-gray-500 truncate capitalize">
+                    {user?.role || 'Student'}
                   </p>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -18,55 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const DEGREE_PROGRAMS = {
-  Associate: [
-    "Associate of Arts in Theology",
-    "Associate of Arts in Biblical Studies",
-    "Associate of Arts in Christian Ministry",
-    "Associate of Arts in Clinical Mental Health Counseling",
-    "Associate of Science in Business Administration",
-    "Associate of Arts in Leadership & Cultural Management"
-  ],
-  Bachelor: [
-    "Bachelor of Arts in Theology",
-    "Bachelor of Arts in Biblical Studies",
-    "Bachelor of Arts in Christian Ministry",
-    "Bachelor of Science in Psychology",
-    "Bachelor of Science in Business Administration",
-    "Bachelor of Science in Nursing",
-    "Bachelor of Arts in Education",
-    "Bachelor of Science in Computer Science",
-    "Bachelor of Arts in Communication"
-  ],
-  Master: [
-    "Master of Divinity",
-    "Master of Arts in Theology",
-    "Master of Arts in Christian Counseling",
-    "Master of Arts in Ministry Leadership",
-    "Master of Business Administration",
-    "Master of Science in Nursing",
-    "Master of Education",
-    "Master of Public Health",
-    "Master of Science in Clinical Mental Health Counseling"
-  ],
-  Doctorate: [
-    "Doctor of Ministry",
-    "Doctor of Theology",
-    "Doctor of Education",
-    "Doctor of Business Administration",
-    "Doctor of Nursing Practice"
-  ],
-  PhD: [
-    "PhD in Theology",
-    "PhD in Biblical Studies",
-    "PhD in Ministry",
-    "PhD in Psychology",
-    "PhD in Education",
-    "PhD in Business Administration",
-    "Ph.D. in Psychology, Minor in Clinical Chaplaincy Psychotherapy"
-  ]
-};
+import { allPrograms } from "@/data/degreePrograms";
 
 export default function CreateCourseDialog({ open, onClose, onSubmit, isLoading, lecturers, colleges, isAdmin }) {
   const [formData, setFormData] = useState({
@@ -84,16 +36,95 @@ export default function CreateCourseDialog({ open, onClose, onSubmit, isLoading,
     college_name: ''
   });
 
+  const [programSearchQuery, setProgramSearchQuery] = useState('');
+  const [showProgramDropdown, setShowProgramDropdown] = useState(false);
+  const dropdownRef = React.useRef(null);
+
+  // Filter degree programs based on selected level from the Program Catalog data
+  const availableDegreePrograms = useMemo(() => {
+    return allPrograms
+      .filter(program => program.level === formData.program)
+      .map(program => program.name)
+      .sort();
+  }, [formData.program]);
+
+  // Get all unique colleges from the Program Catalog data
+  const allCollegesFromPrograms = useMemo(() => {
+    const uniqueColleges = [...new Set(allPrograms.map(p => p.college))];
+    return uniqueColleges.sort().map((name, index) => ({
+      id: name, // Use name as ID for now since we're not storing in DB
+      name: name
+    }));
+  }, []);
+
+  // Combine colleges from database and programs catalog (use programs as primary source)
+  const combinedColleges = useMemo(() => {
+    // If colleges from DB exist, merge them, otherwise use allCollegesFromPrograms
+    if (colleges && colleges.length > 0) {
+      // Get college names from DB
+      const dbCollegeNames = new Set(Array.isArray(colleges) ? colleges.map(c => c.name) : []);
+      // Get colleges only in programs but not in DB
+      const additionalColleges = allCollegesFromPrograms.filter(c => !dbCollegeNames.has(c.name));
+      // Combine and sort
+      const merged = [...(Array.isArray(colleges) ? colleges : []), ...additionalColleges];
+      return merged.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return allCollegesFromPrograms;
+  }, [colleges, allCollegesFromPrograms]);
+
+  // Filter programs based on search query
+  const filteredPrograms = useMemo(() => {
+    if (!programSearchQuery.trim()) {
+      return availableDegreePrograms;
+    }
+    const query = programSearchQuery.toLowerCase();
+    return availableDegreePrograms.filter(program =>
+      program.toLowerCase().includes(query)
+    );
+  }, [availableDegreePrograms, programSearchQuery]);
+
   // Debug: Log colleges when dialog opens
   React.useEffect(() => {
     if (open) {
-      console.log('CreateCourseDialog opened - Colleges:', colleges);
-      console.log('Colleges count:', colleges?.length || 0);
+      console.log('CreateCourseDialog opened - DB Colleges:', colleges);
+      console.log('CreateCourseDialog - Combined Colleges:', combinedColleges);
+      console.log('Colleges count:', combinedColleges?.length || 0);
     }
-  }, [open, colleges]);
+  }, [open, colleges, combinedColleges]);
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowProgramDropdown(false);
+      }
+    };
+
+    if (showProgramDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showProgramDropdown]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    console.log('🎯 Form submission started');
+    console.log('📋 Form data:', formData);
+    
+    // Validate degree program is selected
+    if (!formData.degree_program) {
+      alert('Please select a degree program');
+      return;
+    }
+    
+    // Validate college is selected
+    if (!formData.college_id) {
+      alert('Please select a college');
+      return;
+    }
+    
+    console.log('✅ Validation passed, calling onSubmit');
     onSubmit(formData);
   };
 
@@ -107,15 +138,22 @@ export default function CreateCourseDialog({ open, onClose, onSubmit, isLoading,
       program: value,
       degree_program: '' // Reset degree program when level changes
     }));
+    setProgramSearchQuery(''); // Reset search when level changes
   };
 
   const handleCollegeChange = (collegeId) => {
-    const college = colleges?.find(c => c.id === collegeId);
+    const college = combinedColleges?.find(c => String(c.id) === String(collegeId));
     setFormData(prev => ({
       ...prev,
       college_id: collegeId,
       college_name: college?.name || ''
     }));
+  };
+
+  const handleProgramSelect = (program) => {
+    handleChange('degree_program', program);
+    setProgramSearchQuery('');
+    setShowProgramDropdown(false);
   };
 
   return (
@@ -143,6 +181,7 @@ export default function CreateCourseDialog({ open, onClose, onSubmit, isLoading,
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="Certificate">Certificate</SelectItem>
                   <SelectItem value="Associate">Associate</SelectItem>
                   <SelectItem value="Bachelor">Bachelor</SelectItem>
                   <SelectItem value="Master">Master</SelectItem>
@@ -154,32 +193,88 @@ export default function CreateCourseDialog({ open, onClose, onSubmit, isLoading,
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="degree_program">Degree Program *</Label>
-            <Select value={formData.degree_program} onValueChange={(value) => handleChange('degree_program', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a degree program" />
-              </SelectTrigger>
-              <SelectContent>
-                {DEGREE_PROGRAMS[formData.program].map(program => (
-                  <SelectItem key={program} value={program}>
-                    {program}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="degree_program">Degree Program * ({availableDegreePrograms.length} programs available)</Label>
+            <div className="relative" ref={dropdownRef}>
+              {/* Search Input */}
+              <Input
+                id="degree_program"
+                placeholder={formData.degree_program || "Type to search degree programs..."}
+                value={programSearchQuery}
+                onChange={(e) => {
+                  setProgramSearchQuery(e.target.value);
+                  setShowProgramDropdown(true);
+                }}
+                onFocus={() => setShowProgramDropdown(true)}
+                autoComplete="off"
+              />
+              
+              {/* Selected Program Display */}
+              {formData.degree_program && !showProgramDropdown && (
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md text-sm">
+                  <span className="font-medium text-blue-900">Selected: </span>
+                  <span className="text-blue-700">{formData.degree_program}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleChange('degree_program', '');
+                      setProgramSearchQuery('');
+                    }}
+                    className="ml-2 text-blue-600 hover:text-blue-800 underline text-xs"
+                  >
+                    Change
+                  </button>
+                </div>
+              )}
+
+              {/* Dropdown List */}
+              {showProgramDropdown && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-64 overflow-y-auto">
+                  {filteredPrograms.length === 0 ? (
+                    <div className="px-4 py-3 text-sm text-gray-500">
+                      {availableDegreePrograms.length === 0 
+                        ? `No programs available for ${formData.program} level`
+                        : 'No programs match your search'}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="px-3 py-2 text-xs text-gray-500 bg-gray-50 border-b sticky top-0">
+                        {filteredPrograms.length} program{filteredPrograms.length !== 1 ? 's' : ''} found
+                      </div>
+                      {filteredPrograms.map((program) => (
+                        <button
+                          key={program}
+                          type="button"
+                          onClick={() => handleProgramSelect(program)}
+                          className="w-full text-left px-4 py-2.5 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none border-b border-gray-100 last:border-b-0 transition-colors"
+                        >
+                          <div className="text-sm text-gray-900">{program}</div>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowProgramDropdown(false)}
+                    className="w-full px-4 py-2 text-xs text-center text-gray-500 hover:bg-gray-50 border-t sticky bottom-0 bg-white"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="college">College/Department * ({colleges?.length || 0} colleges available)</Label>
+            <Label htmlFor="college">College/Department * ({combinedColleges?.length || 0} colleges available)</Label>
             <Select value={formData.college_id} onValueChange={handleCollegeChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a college" />
               </SelectTrigger>
-              <SelectContent>
-                {!colleges || colleges.length === 0 ? (
+              <SelectContent className="max-h-[300px]">
+                {!combinedColleges || combinedColleges.length === 0 ? (
                   <div className="px-2 py-1.5 text-sm text-gray-500">No colleges available</div>
                 ) : (
-                  colleges.map(college => (
+                  combinedColleges.map(college => (
                     <SelectItem key={college.id} value={college.id}>
                       {college.name}
                     </SelectItem>

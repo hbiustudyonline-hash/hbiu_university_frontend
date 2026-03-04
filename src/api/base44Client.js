@@ -653,6 +653,23 @@ export const base44 = {
           return Promise.resolve(mockColleges);
         }
         return apiRequest(`/colleges`);
+      },
+      create: (collegeData) => {
+        if (MOCK_MODE) {
+          // Create new college with proper format
+          const newCollege = {
+            id: Date.now().toString(),
+            name: collegeData.name,
+            description: collegeData.description || '',
+            status: collegeData.status || 'active'
+          };
+          console.log('✅ College created in mock mode:', newCollege);
+          return Promise.resolve(newCollege);
+        }
+        return apiRequest('/colleges', {
+          method: 'POST',
+          body: JSON.stringify(collegeData),
+        });
       }
     },
     Enrollment: {
