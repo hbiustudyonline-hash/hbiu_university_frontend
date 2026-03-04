@@ -39,6 +39,8 @@ export const AuthProvider = ({ children }) => {
         const storedUserData = localStorage.getItem('userData');
         const storedToken = localStorage.getItem('token');
         
+        console.log('[AUTH] Checking auth status. Token exists:', !!storedToken, 'User data exists:', !!storedUserData);
+        
         // Check if we have a valid token
         if (storedToken && storedToken.length > 50 && !storedToken.startsWith('mock-')) {
           // We have what looks like a real JWT token
@@ -50,94 +52,36 @@ export const AuthProvider = ({ children }) => {
               console.log('[AUTH] Using stored user:', parsedUser.email, 'Role:', parsedUser.role);
             }
           }
-          setIsLoading(false);
+          
+          // Optionally verify token with backend
+          try {
+            const response = await base44.auth.me();
+            if (response && (response.success || response.id)) {
+              const updatedUser = response.data || response;
+              if (!cancelled) {
+                setUser(updatedUser);
+                localStorage.setItem('userData', JSON.stringify(updatedUser));
+              }
+            }
+          } catch (error) {
+            console.warn('[AUTH] Token verification warning:', error.message);
+            // Keep using stored user even if verification fails (could be network issue)
+          }
+          
+          if (!cancelled) {
+            setIsLoading(false);
+          }
           return;
         }
 
-        // No valid token - auto-login as admin to get a real JWT token
-        console.log('[AUTH] No valid token found. Auto-logging in as admin...');
-        try {
-          const response = await base44.auth.login('admin@hbiu.edu', 'admin123');
-          
-          if (response.success && response.data) {
-            const { user: userData, token } = response.data;
-            if (!cancelled) {
-              setUser(userData);
-              setIsAuthenticated(true);
-              localStorage.setItem('token', token);
-              localStorage.setItem('userData', JSON.stringify(userData));
-              console.log('[AUTH] Auto-login successful. User:', userData.email, 'Role:', userData.role);
-            }
-          } else {
-            throw new Error('Auto-login failed');
-          }
-        } catch (loginError) {
-          console.error('[AUTH] Auto-login failed:', loginError.message);
-          // Fallback to mock user
-          const defaultUser = getInitialUser();
-          if (!cancelled) {
-            setUser(defaultUser);
-            setIsAuthenticated(true);
-            localStorage.setItem('userData', JSON.stringify(defaultUser));
-            console.log('[AUTH] Using fallback admin user');
-          }
-        }
-        
+        // No valid token - user needs to log in
+        console.log('[AUTH] No valid token found. User needs to log in.');
         if (!cancelled) {
-          setIsLoading(false);
-        }
-        return;
-
-        const token = localStorage.getItem('token');
-        const userData = localStorage.getItem('userData');
-        
-        console.log('[AUTH] Checking auth status. Token exists:', !!token, 'User data exists:', !!userData);
-
-        if (token && userData) {
-          const parsedUser = JSON.parse(userData);
-          console.log('[AUTH] Found stored user:', parsedUser.email);
-          
-          if (!cancelled) {
-            setUser(parsedUser);
-            setIsAuthenticated(true);
-          }
-          
-          // Only verify token if it looks like a real JWT (not mock)
-          if (token && !token.startsWith('mock-')) {
-            try {
-              const response = await base44.auth.me();
-              // Handle the response format: { success: true, data: userObject, message, timestamp }
-              if (response && (response.success || response.id)) {
-                // Backend returns { success: true, data: userObject }
-                // So the actual user data is in response.data
-                const updatedUser = response.data || response;
-                
-                if (!cancelled) {
-                  setUser(updatedUser);
-                  localStorage.setItem('userData', JSON.stringify(updatedUser));
-                }
-              }
-            } catch (error) {
-              console.error('[AUTH] Token validation error:', error.message);
-              // Clear auth on 401 (invalid token)
-              if (error.status === 401 || error.message?.includes('401')) {
-                console.log('[AUTH] Token is invalid (401) - clearing authentication');
-                if (!cancelled) {
-                  localStorage.removeItem('token');
-                  localStorage.removeItem('userData');
-                  setUser(null);
-                  setIsAuthenticated(false);
-                }
-              } else {
-                // For other errors (network, etc), keep auth state but log warning
-                console.warn('[AUTH] Could not verify token due to error:', error.message);
-                // Don't clear auth on network errors - user may still be authenticated
-              }
-            }
-          }
+          setUser(null);
+          setIsAuthenticated(false);
         }
       } catch (error) {
-        console.error('Error checking auth status:', error);
+        console.error('[AUTH] Error checking auth status:', error);
         if (!cancelled) {
           setUser(null);
           setIsAuthenticated(false);
