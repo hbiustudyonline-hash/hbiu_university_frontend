@@ -354,7 +354,7 @@ export const base44 = {
   // Add entities object for other API calls
   entities: {
     Course: {
-      list: (sort = '-created_at', limit = 100) => {
+      list: (sort = '-created_at', limit = 999999) => {
         if (MOCK_MODE) {
           // Convert courses from courses.json to match the expected format
           const formattedCourses = coursesData.courses.map((course, index) => {
@@ -526,7 +526,7 @@ export const base44 = {
         }
         return apiRequest(`/courses`);
       },
-      filter: async (filters, sort = '-created_at', limit = 100) => {
+      filter: async (filters, sort = '-created_at', limit = 999999) => {
         if (MOCK_MODE) {
           // Get all courses and filter them
           const allCourses = await this.list(sort, limit);

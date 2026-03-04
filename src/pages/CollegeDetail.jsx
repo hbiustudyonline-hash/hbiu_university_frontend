@@ -131,10 +131,23 @@ export default function CollegeDetail() {
     queryKey: ['college-courses', collegeId],
     queryFn: async () => {
       console.log('🔍 CollegeDetail - Fetching courses for college ID:', collegeId);
-      const result = await base44.entities.Course.filter({ college_id: collegeId });
-      console.log('🔍 CollegeDetail - Courses found:', result.length);
+      // Fetch ALL courses and filter client-side (Base44 filter may not work with collegeId)
+      const allCourses = await base44.entities.Course.list('-created_date');
+      
+      // Filter for this college - check both collegeId and college_id
+      const result = allCourses.filter(c => {
+        const cid = c.collegeId || c.college_id;
+        return String(cid) === String(collegeId);
+      });
+      
+      console.log('🔍 CollegeDetail - Total courses fetched:', allCourses.length);
+      console.log('🔍 CollegeDetail - Courses for this college:', result.length);
       if (result.length > 0) {
-        console.log('🔍 CollegeDetail - Sample course college_ids:', result.slice(0, 5).map(c => c.college_id));
+        console.log('🔍 CollegeDetail - Sample courses:', result.slice(0, 3).map(c => ({
+          code: c.code,
+          collegeId: c.collegeId,
+          college_id: c.college_id
+        })));
       }
       return result;
     },

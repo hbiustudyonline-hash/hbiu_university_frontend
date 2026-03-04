@@ -216,15 +216,15 @@ export const AuthProvider = ({ children }) => {
     
     switch (userToCheck.role) {
       case 'admin':
-        return '/AdminDashboard';
+        return '/admin-dashboard';
       case 'lecturer':
-        return '/LecturerDashboard';
+        return '/lecturer-dashboard';
       case 'student':
-        return '/Dashboard';
+        return '/dashboard';
       case 'college_admin':
-        return '/EnrollmentDashboard';
+        return '/enrollment';
       default:
-        return '/Dashboard';
+        return '/dashboard';
     }
   };
 

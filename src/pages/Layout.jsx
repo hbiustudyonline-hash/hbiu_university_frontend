@@ -8,6 +8,7 @@ import {
   Presentation,
   User,
   Home,
+  Building2, // Added Building2 import
   Shield // Added Shield icon for Admin Dashboard
 } from "lucide-react";
 import {

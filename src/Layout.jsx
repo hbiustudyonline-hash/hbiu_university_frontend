@@ -104,27 +104,82 @@ export default function Layout({ children, currentPageName }) {
   //   );
   // }
 
-  const isInstructor = user?.role === 'admin' || user?.role === 'lecturer';
+  const isStudent = user?.role === 'student';
+  const isLecturer = user?.role === 'lecturer';
+  const isAdmin = user?.role === 'admin';
 
   const handleLogout = () => {
     base44.auth.logout(createPageUrl("Home"));
   };
 
-  const navigationItems = [
+  // Build navigation items based on role
+  let navigationItems = [];
+
+  // Common items for all authenticated users
+  const commonItems = [
     {
       title: "Home",
       url: createPageUrl("Home"),
       icon: Home,
-      badge: "Public"
     },
     {
       title: "Dashboard",
       url: createPageUrl("Dashboard"),
       icon: LayoutDashboard,
     },
+  ];
+
+  // Student-specific navigation
+  const studentItems = [
     {
       title: "Support Queries",
-      url: createPageUrl(isInstructor ? "StaffSupport" : "StudentSupport"),
+      url: createPageUrl("StudentSupport"),
+      icon: MessageSquare,
+    },
+    {
+      title: "University Announcements",
+      url: createPageUrl("UniversityAnnouncements"),
+      icon: Megaphone,
+    },
+    {
+      title: "Programs Catalog",
+      url: createPageUrl("Programs"),
+      icon: Award,
+    },
+    {
+      title: "Courses",
+      url: createPageUrl("Courses"),
+      icon: BookOpen,
+    },
+    {
+      title: "Colleges",
+      url: createPageUrl("Colleges"),
+      icon: Building2,
+    },
+    {
+      title: "Enrollment",
+      url: createPageUrl("EnrollmentDashboard"),
+      icon: GraduationCap,
+    },
+    {
+      title: "New Students Group",
+      url: createPageUrl("CommunityGroup"),
+      icon: Users,
+      badge: "New"
+    },
+    {
+      title: "High Performers",
+      url: createPageUrl("HighPerformersBoard"),
+      icon: Award,
+      badge: "🏆"
+    },
+  ];
+
+  // Lecturer-specific navigation
+  const lecturerItems = [
+    {
+      title: "Support Queries",
+      url: createPageUrl("StaffSupport"),
       icon: MessageSquare,
     },
     {
@@ -167,72 +222,120 @@ export default function Layout({ children, currentPageName }) {
       icon: Award,
       badge: "🏆"
     },
-    ];
-
-  // Add tutorial for students only
-  if (!isInstructor) {
-    navigationItems.push({
-      title: "Tutorial",
-      url: createPageUrl("StudentTutorial"),
-      icon: GraduationCap,
-    });
-  }
-
-  // Add Enrollment for students
-  if (!isInstructor) {
-    navigationItems.push({
-      title: "Enrollment",
-      url: createPageUrl("EnrollmentDashboard"),
-      icon: GraduationCap,
-    });
-  }
-
-  if (isInstructor) {
-    navigationItems.push({
+    {
       title: "Lecturer Dashboard",
       url: "/lecturer-dashboard",
       icon: Presentation,
-    });
-    navigationItems.push({
+    },
+    {
       title: "Lecturer Tutorial",
       url: createPageUrl("LecturerTutorial"),
       icon: GraduationCap,
-    });
-    navigationItems.push({
+    },
+  ];
+
+  // Admin-specific navigation
+  const adminItems = [
+    {
+      title: "Support Queries",
+      url: createPageUrl("StaffSupport"),
+      icon: MessageSquare,
+    },
+    {
+      title: "University Announcements",
+      url: createPageUrl("UniversityAnnouncements"),
+      icon: Megaphone,
+    },
+    {
+      title: "Programs Catalog",
+      url: createPageUrl("Programs"),
+      icon: Award,
+      badge: "Public"
+    },
+    {
+      title: "Additional Program Outlines",
+      url: createPageUrl("AdditionalProgramOutlines"),
+      icon: BookOpen,
+    },
+    {
+      title: "Courses",
+      url: createPageUrl("Courses"),
+      icon: BookOpen,
+      badge: "Public"
+    },
+    {
+      title: "Colleges",
+      url: createPageUrl("Colleges"),
+      icon: Building2,
+      badge: "Public"
+    },
+    {
+      title: "New Students Group",
+      url: createPageUrl("CommunityGroup"),
+      icon: Users,
+      badge: "New"
+    },
+    {
+      title: "High Performers",
+      url: createPageUrl("HighPerformersBoard"),
+      icon: Award,
+      badge: "🏆"
+    },
+    {
+      title: "Lecturer Dashboard",
+      url: "/lecturer-dashboard",
+      icon: Presentation,
+    },
+    {
+      title: "Lecturer Tutorial",
+      url: createPageUrl("LecturerTutorial"),
+      icon: GraduationCap,
+    },
+    {
       title: "Admin Dashboard",
       url: "/admin-dashboard",
       icon: Shield,
-    });
-    navigationItems.push({
+    },
+    {
       title: "Admin Office",
       url: "/VirtualAdminOffice",
       icon: Building2,
-    });
-    navigationItems.push({
+    },
+    {
       title: "Test Transcript Tool",
       url: createPageUrl("TestTranscriptGenerator"),
       icon: GraduationCap,
       badge: "Test"
-    });
-    navigationItems.push({
+    },
+    {
       title: "Add Lecturer",
       url: createPageUrl("AdminAddLecturer"),
       icon: User,
-    });
-    navigationItems.push({
+    },
+    {
       title: "Bulk Enrollment",
       url: createPageUrl("BulkEnrollment"),
       icon: UserPlus,
-    });
-  }
+    },
+    {
+      title: "Become a Lecturer",
+      url: createPageUrl("LecturerRegistrationPublic"),
+      icon: GraduationCap,
+      badge: "Apply"
+    },
+  ];
 
-  // Public lecturer registration
-  navigationItems.push({
-    title: "Become a Lecturer",
-    url: createPageUrl("LecturerRegistrationPublic"),
-    icon: GraduationCap,
-    badge: "Apply"
-  });
+  // Assemble navigation based on role
+  if (isStudent) {
+    navigationItems = [...commonItems, ...studentItems];
+  } else if (isLecturer) {
+    navigationItems = [...commonItems, ...lecturerItems];
+  } else if (isAdmin) {
+    navigationItems = [...commonItems, ...adminItems];
+  } else {
+    // Default for unauthenticated or unknown roles
+    navigationItems = commonItems;
+  }
 
   return (
     <SidebarProvider>

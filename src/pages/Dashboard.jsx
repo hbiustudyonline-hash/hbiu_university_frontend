@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import Layout from "@/Layout";
 import { 
@@ -24,7 +24,20 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Redirect non-students to their appropriate dashboards
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin') {
+        navigate('/admin-dashboard', { replace: true });
+      } else if (user.role === 'lecturer') {
+        navigate('/lecturer-dashboard', { replace: true });
+      }
+      // Students stay on this dashboard
+    }
+  }, [user, navigate]);
 
   // Fetch real data from backend
   const { data: enrollments = [] } = useQuery({
