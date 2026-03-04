@@ -41,31 +41,31 @@ export const AuthProvider = ({ children }) => {
         
         console.log('[AUTH] Checking auth status. Token exists:', !!storedToken, 'User data exists:', !!storedUserData);
         
-        // Check if we have a valid token
-        if (storedToken && storedToken.length > 50 && !storedToken.startsWith('mock-')) {
-          // We have what looks like a real JWT token
-          if (storedUserData) {
-            const parsedUser = JSON.parse(storedUserData);
-            if (!cancelled) {
-              setUser(parsedUser);
-              setIsAuthenticated(true);
-              console.log('[AUTH] Using stored user:', parsedUser.email, 'Role:', parsedUser.role);
-            }
+        // Check if we have both token and user data
+        if (storedToken && storedUserData) {
+          const parsedUser = JSON.parse(storedUserData);
+          if (!cancelled) {
+            setUser(parsedUser);
+            setIsAuthenticated(true);
+            console.log('[AUTH] Using stored user:', parsedUser.email, 'Role:', parsedUser.role);
           }
           
-          // Optionally verify token with backend
-          try {
-            const response = await base44.auth.me();
-            if (response && (response.success || response.id)) {
-              const updatedUser = response.data || response;
-              if (!cancelled) {
-                setUser(updatedUser);
-                localStorage.setItem('userData', JSON.stringify(updatedUser));
+          // Optionally verify token with backend (only for real JWT tokens, not mock)
+          if (storedToken.length > 50 && !storedToken.startsWith('mock-')) {
+            try {
+              const response = await base44.auth.me();
+              if (response && (response.success || response.id)) {
+                const updatedUser = response.data || response;
+                if (!cancelled) {
+                  setUser(updatedUser);
+                  localStorage.setItem('userData', JSON.stringify(updatedUser));
+                  console.log('[AUTH] Token verified, user updated');
+                }
               }
+            } catch (error) {
+              console.warn('[AUTH] Token verification warning:', error.message);
+              // Keep using stored user even if verification fails (could be network issue)
             }
-          } catch (error) {
-            console.warn('[AUTH] Token verification warning:', error.message);
-            // Keep using stored user even if verification fails (could be network issue)
           }
           
           if (!cancelled) {
@@ -74,8 +74,8 @@ export const AuthProvider = ({ children }) => {
           return;
         }
 
-        // No valid token - user needs to log in
-        console.log('[AUTH] No valid token found. User needs to log in.');
+        // No token or user data - user needs to log in
+        console.log('[AUTH] No stored auth data found. User needs to log in.');
         if (!cancelled) {
           setUser(null);
           setIsAuthenticated(false);
