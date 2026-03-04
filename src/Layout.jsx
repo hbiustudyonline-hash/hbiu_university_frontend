@@ -145,21 +145,24 @@ export default function Layout({ children, currentPageName }) {
       title: "Programs Catalog",
       url: createPageUrl("Programs"),
       icon: Award,
+      badge: "Public"
+    },
+    {
+      title: "Additional Program Outlines",
+      url: createPageUrl("AdditionalProgramOutlines"),
+      icon: BookOpen,
     },
     {
       title: "Courses",
       url: createPageUrl("Courses"),
       icon: BookOpen,
+      badge: "Public"
     },
     {
       title: "Colleges",
       url: createPageUrl("Colleges"),
       icon: Building2,
-    },
-    {
-      title: "Enrollment",
-      url: createPageUrl("EnrollmentDashboard"),
-      icon: GraduationCap,
+      badge: "Public"
     },
     {
       title: "New Students Group",
@@ -172,6 +175,22 @@ export default function Layout({ children, currentPageName }) {
       url: createPageUrl("HighPerformersBoard"),
       icon: Award,
       badge: "🏆"
+    },
+    {
+      title: "Tutorial",
+      url: createPageUrl("StudentTutorial"),
+      icon: GraduationCap,
+    },
+    {
+      title: "Enrollment",
+      url: createPageUrl("EnrollmentDashboard"),
+      icon: GraduationCap,
+    },
+    {
+      title: "Become a Lecturer",
+      url: createPageUrl("LecturerRegistrationPublic"),
+      icon: GraduationCap,
+      badge: "Apply"
     },
   ];
 
