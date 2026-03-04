@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import Layout from "@/Layout";
 import {
   Users,
@@ -11,21 +13,57 @@ import {
   Activity,
   Building2,
   CheckCircle,
-  Clock
+  Clock,
+  Lock,
+  UserCog,
+  FileText,
+  Award,
+  Layers,
+  Zap,
+  UserCheck,
+  ClipboardCheck,
+  FileSearch
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import AdminColleges from "@/components/admin/AdminColleges";
+import AdminUsers from "@/components/admin/AdminUsers";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Fetch real data from the backend
+  const { data: colleges = [] } = useQuery({
+    queryKey: ['colleges'],
+    queryFn: () => base44.entities.College.list(),
+  });
+
+  const { data: courses = [] } = useQuery({
+    queryKey: ['courses'],
+    queryFn: () => base44.entities.Course.list(),
+  });
+
+  // Fetch all users for user management
+  const { data: usersData, isLoading: usersLoading } = useQuery({
+    queryKey: ['all-users'],
+    queryFn: () => base44.entities.User.list(),
+  });
+
+  // Transform backend user data to match AdminUsers component expectations
+  const allUsers = (usersData || []).map(user => ({
+    ...user,
+    full_name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+    // Map backend roles to component roles
+    role: user.role === 'student' ? 'user' : user.role === 'lecturer' ? 'admin' : user.role
+  }));
+
   // Mock data for demonstration
   const mockStats = {
-    totalUsers: 1247,
-    totalCourses: 89,
-    totalStudents: 1156,
-    totalColleges: 12,
-    activeEnrollments: 3456,
+    totalStudents: 3118,
+    totalLecturers: 121,
+    totalCourses: courses.length || 5000,
+    totalColleges: colleges.length || 35,
+    activeEnrollments: 4988,
     pendingApplications: 23
   };
 
@@ -41,38 +79,38 @@ export default function AdminDashboard() {
       <div className="p-4 md:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#012759] via-[#1a3a6e] to-[#fca31c] p-8 md:p-12 shadow-2xl">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl -mr-32 -mt-32" />
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-blue-800 p-8 md:p-12 shadow-2xl">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl -mr-32 -mt-32" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl -ml-24 -mb-24" />
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#fca31c] to-[#012759] rounded-2xl flex items-center justify-center shadow-xl">
+              <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
                 <Shield className="w-8 h-8 text-white" />
               </div>
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold text-white">
                   Administration Dashboard
                 </h1>
-                <p className="text-purple-200 text-lg">
+                <p className="text-blue-100 text-lg">
                   System Management & Control
                 </p>
               </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
-                <p className="text-purple-200 text-sm mb-1">Total Students</p>
+                <p className="text-blue-100 text-sm mb-1">Total Students</p>
                 <p className="text-3xl font-bold text-white">{mockStats.totalStudents.toLocaleString()}</p>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
-                <p className="text-purple-200 text-sm mb-1">Total Users</p>
-                <p className="text-3xl font-bold text-white">{mockStats.totalUsers.toLocaleString()}</p>
+                <p className="text-blue-100 text-sm mb-1">Lecturers</p>
+                <p className="text-3xl font-bold text-white">{mockStats.totalLecturers.toLocaleString()}</p>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
-                <p className="text-purple-200 text-sm mb-1">Courses</p>
-                <p className="text-3xl font-bold text-white">{mockStats.totalCourses}</p>
+                <p className="text-blue-100 text-sm mb-1">Courses</p>
+                <p className="text-3xl font-bold text-white">{mockStats.totalCourses.toLocaleString()}</p>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
-                <p className="text-purple-200 text-sm mb-1">Enrollments</p>
+                <p className="text-blue-100 text-sm mb-1">Enrollments</p>
                 <p className="text-3xl font-bold text-white">{mockStats.activeEnrollments.toLocaleString()}</p>
               </div>
             </div>
@@ -81,71 +119,165 @@ export default function AdminDashboard() {
 
         {/* Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-white shadow-md rounded-xl p-2">
-            <TabsTrigger value="overview" className="flex items-center gap-2 data-[state=active]:bg-[#012759] data-[state=active]:text-white">
-              <Activity className="w-4 h-4" />
-              <span className="hidden sm:inline">Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2 data-[state=active]:bg-[#012759] data-[state=active]:text-white">
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Users</span>
-            </TabsTrigger>
-            <TabsTrigger value="courses" className="flex items-center gap-2 data-[state=active]:bg-[#012759] data-[state=active]:text-white">
-              <BookOpen className="w-4 h-4" />
-              <span className="hidden sm:inline">Courses</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2 data-[state=active]:bg-[#012759] data-[state=active]:text-white">
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Analytics</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="bg-white shadow-md rounded-xl p-3 mb-6">
+            <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
+              {/* Row 1 */}
+              <button onClick={() => setActiveTab('overview')} className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors text-sm ${activeTab === 'overview' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <Activity className="w-4 h-4" />
+                <span>Overview</span>
+              </button>
+              <button onClick={() => setActiveTab('colleges')} className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors text-sm ${activeTab === 'colleges' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <Building2 className="w-4 h-4" />
+                <span>Colleges</span>
+              </button>
+              <button onClick={() => setActiveTab('passwords')} className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors text-sm ${activeTab === 'passwords' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <Lock className="w-4 h-4" />
+                <span>Passwords</span>
+              </button>
+              <button onClick={() => setActiveTab('staff')} className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors text-sm ${activeTab === 'staff' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <UserCog className="w-4 h-4" />
+                <span>Staff</span>
+              </button>
+              <button onClick={() => setActiveTab('users')} className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors text-sm ${activeTab === 'users' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <Users className="w-4 h-4" />
+                <span>Users</span>
+              </button>
+              <button onClick={() => setActiveTab('courses')} className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors text-sm ${activeTab === 'courses' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <BookOpen className="w-4 h-4" />
+                <span>Courses</span>
+              </button>
+              <button onClick={() => setActiveTab('grades')} className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors text-sm ${activeTab === 'grades' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <FileText className="w-4 h-4" />
+                <span>Grades</span>
+              </button>
+              
+              {/* Row 2 */}
+              <button onClick={() => setActiveTab('analytics')} className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors text-sm ${activeTab === 'analytics' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <BarChart3 className="w-4 h-4" />
+                <span>Analytics</span>
+              </button>
+              <button onClick={() => setActiveTab('degrees')} className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors text-sm ${activeTab === 'degrees' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <GraduationCap className="w-4 h-4" />
+                <span>Degrees</span>
+              </button>
+              <button onClick={() => setActiveTab('programs')} className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors text-sm ${activeTab === 'programs' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <Layers className="w-4 h-4" />
+                <span>Programs</span>
+              </button>
+              <button onClick={() => setActiveTab('bulkgen')} className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors text-sm ${activeTab === 'bulkgen' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <Zap className="w-4 h-4" />
+                <span>Bulk Gen</span>
+              </button>
+              <button onClick={() => setActiveTab('roles')} className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors text-sm ${activeTab === 'roles' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <UserCheck className="w-4 h-4" />
+                <span>Roles</span>
+              </button>
+              <button onClick={() => setActiveTab('assign')} className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors text-sm ${activeTab === 'assign' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <ClipboardCheck className="w-4 h-4" />
+                <span>Assign</span>
+              </button>
+              <button onClick={() => setActiveTab('audit')} className={`flex items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors text-sm ${activeTab === 'audit' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
+                <FileSearch className="w-4 h-4" />
+                <span>Audit</span>
+              </button>
+            </div>
+          </div>
 
           <TabsContent value="overview" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                    <Users className="w-4 h-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{mockStats.totalUsers.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">+12% from last month</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Active Courses</CardTitle>
-                    <BookOpen className="w-4 h-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{mockStats.totalCourses}</div>
-                    <p className="text-xs text-muted-foreground">+3 new this week</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Students</CardTitle>
-                    <GraduationCap className="w-4 h-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{mockStats.totalStudents.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">+8% enrollment rate</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Colleges</CardTitle>
-                    <Building2 className="w-4 h-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{mockStats.totalColleges}</div>
-                    <p className="text-xs text-muted-foreground">Across 5 states</p>
-                  </CardContent>
-                </Card>
-              </div>
+            {/* Main Stats Grid - 3 columns */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <Users className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Total Students</p>
+                      <p className="text-2xl font-bold">{mockStats.totalStudents.toLocaleString()}</p>
+                      <p className="text-xs text-green-600">+12% from last month</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-purple-100 rounded-full">
+                      <GraduationCap className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Active Lecturers</p>
+                      <p className="text-2xl font-bold">{mockStats.totalLecturers}</p>
+                      <p className="text-xs text-green-600">+3 new this month</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-green-100 rounded-full">
+                      <BookOpen className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Published Courses</p>
+                      <p className="text-2xl font-bold">{mockStats.totalCourses.toLocaleString()}</p>
+                      <p className="text-xs text-gray-500">5000 total courses</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-orange-100 rounded-full">
+                      <TrendingUp className="w-6 h-6 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Active Enrollments</p>
+                      <p className="text-2xl font-bold">{mockStats.activeEnrollments.toLocaleString()}</p>
+                      <p className="text-xs text-gray-500">0 completed</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-red-100 rounded-full">
+                      <Clock className="w-6 h-6 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Pending Grading</p>
+                      <p className="text-2xl font-bold">2953</p>
+                      <p className="text-xs text-red-600">Needs attention</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <BarChart3 className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Completion Rate</p>
+                      <p className="text-2xl font-bold">0%</p>
+                      <p className="text-xs text-gray-500">Overall performance</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Activity */}
               <Card>
                 <CardHeader>
@@ -242,15 +374,47 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="users" className="mt-6">
+          <TabsContent value="colleges" className="mt-6">
+            <AdminColleges colleges={colleges} courses={courses} />
+          </TabsContent>
+
+          <TabsContent value="passwords" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>User Management</CardTitle>
+                <CardTitle>Password Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-500">User management functionality will be implemented here.</p>
+                <p className="text-gray-500">Reset and manage user passwords.</p>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="staff" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Staff Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-500">Manage {mockStats.totalLecturers} lecturers and staff members.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="users" className="mt-6">
+            {usersLoading ? (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-center py-12">
+                    <div className="text-center">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <p className="mt-4 text-gray-500">Loading users...</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <AdminUsers users={allUsers} />
+            )}
           </TabsContent>
 
           <TabsContent value="courses" className="mt-6">
@@ -259,7 +423,18 @@ export default function AdminDashboard() {
                 <CardTitle>Course Management</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-500">Course management functionality will be implemented here.</p>
+                <p className="text-gray-500">Manage {mockStats.totalCourses.toLocaleString()} courses across all programs.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="grades" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Grades Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-500">View and manage student grades and transcripts.</p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -271,6 +446,72 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-500">Analytics and reporting functionality will be implemented here.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="degrees" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Degree Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-500">Manage degree programs and requirements.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="programs" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Program Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-500">Manage academic programs and curricula.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="bulkgen" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Bulk Generation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-500">Bulk generate users, courses, and other resources.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="roles" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Role Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-500">Manage user roles and permissions.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="assign" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Assignment Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-500">Assign courses, lectures, and resources.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="audit" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Audit Logs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-500">Track all administrative actions and system changes.</p>
               </CardContent>
             </Card>
           </TabsContent>

@@ -1100,9 +1100,9 @@ export default function Colleges() {
                           alt={course.title}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            // Set a gradient background fallback if image fails (blue-600 to purple-600)
+                            // Set a gradient background fallback if image fails (royal blue)
                             e.target.onerror = null; // Prevent infinite loop
-                            e.target.src = 'data:image/svg+xml,%3Csvg width="800" height="300" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3ClinearGradient id="grad" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:rgb(37,99,235);stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:rgb(147,51,234);stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="800" height="300" fill="url(%23grad)" /%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="white" font-size="48" font-weight="bold" opacity="0.9"%3E' + encodeURIComponent(course.code) + '%3C/text%3E%3C/svg%3E';
+                            e.target.src = 'data:image/svg+xml,%3Csvg width="800" height="300" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3ClinearGradient id="grad" x1="0%25" y1="0%25" x2="100%25" y2="100%25"%3E%3Cstop offset="0%25" style="stop-color:rgb(29,78,216);stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:rgb(30,64,175);stop-opacity:1" /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="800" height="300" fill="url(%23grad)" /%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="white" font-size="48" font-weight="bold" opacity="0.9"%3E' + encodeURIComponent(course.code) + '%3C/text%3E%3C/svg%3E';
                           }}
                         />
                         {/* Course Code Badge - Top Left */}
@@ -1115,8 +1115,8 @@ export default function Colleges() {
                         <div className="absolute top-3 right-3">
                           <Badge className={`${
                             course.level === 'PhD' ? 'bg-pink-500' :
-                            course.level === 'Master' ? 'bg-purple-500' :
-                            'bg-blue-500'
+                            course.level === 'Master' ? 'bg-blue-700' :
+                            'bg-blue-700'
                           } text-white font-semibold text-sm px-3 py-1`}>
                             {course.level || 'Bachelor'}
                           </Badge>

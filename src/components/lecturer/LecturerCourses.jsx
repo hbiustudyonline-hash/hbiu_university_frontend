@@ -43,7 +43,7 @@ export default function LecturerCourses({ courses = [], user, isAdmin }) {
   const coursesPerPage = 12;
 
   // Fetch all colleges
-  const { data: colleges = [], isLoading: collegesLoading, error: collegesError } = useQuery({
+  const { data: collegesData, isLoading: collegesLoading, error: collegesError } = useQuery({
     queryKey: ['colleges'],
     queryFn: async () => {
       console.log('🔵 LecturerCourses - Fetching colleges...');
@@ -52,6 +52,9 @@ export default function LecturerCourses({ courses = [], user, isAdmin }) {
       return result;
     },
   });
+
+  // Extract colleges array from response
+  const colleges = Array.isArray(collegesData) ? collegesData : (collegesData?.data?.colleges || collegesData?.colleges || []);
 
   // Debug: Log colleges data
   React.useEffect(() => {
@@ -62,25 +65,32 @@ export default function LecturerCourses({ courses = [], user, isAdmin }) {
   }, [colleges, collegesLoading, collegesError]);
 
   // Fetch all lecturers (for admin)
-  const { data: lecturers = [] } = useQuery({
+  const { data: lecturersData } = useQuery({
     queryKey: ['lecturers'],
     queryFn: async () => {
       const users = await base44.entities.User.list();
-      return users.filter(u => u.role === 'lecturer' || u.role === 'admin');
+      return users;
     },
     enabled: isAdmin,
   });
 
+  // Extract lecturers array from response
+  const allUsers = Array.isArray(lecturersData) ? lecturersData : (lecturersData?.data?.users || lecturersData?.users || []);
+  const lecturers = allUsers.filter(u => u.role === 'lecturer' || u.role === 'admin');
+
   // Fetch enrollments to get student counts
-  const { data: allEnrollments = [] } = useQuery({
+  const { data: enrollmentsData } = useQuery({
     queryKey: ['all-enrollments'],
     queryFn: () => base44.entities.Enrollment.list(),
   });
 
+  // Extract enrollments array from response
+  const allEnrollments = Array.isArray(enrollmentsData) ? enrollmentsData : (enrollmentsData?.data?.enrollments || enrollmentsData?.enrollments || []);
+
   // Add student count to courses
   const coursesWithStudents = courses.map(course => ({
     ...course,
-    students: allEnrollments.filter(e => e.course_id === course.id && e.status === 'active').length
+    students: allEnrollments.filter(e => (e.courseId || e.course_id) === course.id && e.status === 'active').length
   }));
 
   // Create mutations
@@ -109,7 +119,7 @@ export default function LecturerCourses({ courses = [], user, isAdmin }) {
   });
 
   // Get unique college names from colleges (not courses)
-  const uniqueCollegeNames = colleges.map(c => c.name).sort();
+  const uniqueCollegeNames = Array.isArray(colleges) ? colleges.map(c => c.name).sort() : [];
 
   // Get unique semesters from courses, with defaults if empty
   const uniqueSemesters = coursesWithStudents.length > 0 
@@ -123,10 +133,11 @@ export default function LecturerCourses({ courses = [], user, isAdmin }) {
     const matchesStatus =
       statusFilter === "All Status" || course.status === statusFilter;
     
-    // Match by college name
-    const courseCampus = colleges.find(c => String(c.id) === String(course.college_id));
+    // Match by college name - use collegeId (camelCase) or college object
+    const courseCampus = colleges.find(c => String(c.id) === String(course.collegeId || course.college_id));
+    const collegeName = courseCampus?.name || course.college?.name;
     const matchesCollege =
-      collegeFilter === "All Colleges" || courseCampus?.name === collegeFilter;
+      collegeFilter === "All Colleges" || collegeName === collegeFilter;
     
     const matchesSemester =
       semesterFilter === "All Semesters" || course.semester === semesterFilter;
@@ -340,7 +351,7 @@ export default function LecturerCourses({ courses = [], user, isAdmin }) {
 
               {/* Program & Details */}
               <p className="text-xs text-gray-600 mb-2 line-clamp-1">
-                {colleges.find(c => String(c.id) === String(course.college_id))?.name || course.college?.name || 'Unknown College'}
+                {colleges.find(c => String(c.id) === String(course.collegeId || course.college_id))?.name || course.college?.name || 'Unknown College'}
               </p>
               <p className="text-xs text-gray-500 mb-4">
                 <span className="font-semibold text-gray-600">

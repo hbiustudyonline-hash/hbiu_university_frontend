@@ -80,7 +80,7 @@ export default function Layout({ children, currentPageName }) {
   if (isLecturer() || isAdmin()) {
     navigationItems.push({
       title: "Lecturer Dashboard",
-      url: createPageUrl("LecturerDashboard"),
+      url: "/lecturer-dashboard",
       icon: Presentation,
     });
   }
@@ -88,7 +88,7 @@ export default function Layout({ children, currentPageName }) {
   if (isCollegeAdmin()) {
     navigationItems.push({
       title: "College Admin",
-      url: createPageUrl("CollegeAdminDashboard"),
+      url: "/college-admin-dashboard",
       icon: Shield,
     });
   }
@@ -96,7 +96,7 @@ export default function Layout({ children, currentPageName }) {
   if (isAdmin()) {
     navigationItems.push({
       title: "Admin Dashboard",
-      url: createPageUrl("AdminDashboard"),
+      url: "/admin-dashboard",
       icon: Shield,
     });
   }

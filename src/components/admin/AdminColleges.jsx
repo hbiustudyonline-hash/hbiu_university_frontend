@@ -246,7 +246,7 @@ export default function AdminColleges({ colleges, courses }) {
                   </Badge>
                 </div>
                 <div className="flex gap-2 pt-2">
-                  <Link to={`${createPageUrl("CollegeDetail")}?id=${college.id}`} className="flex-1">
+                  <Link to={`${createPageUrl("CollegeAdminDashboard")}?id=${college.id}`} className="flex-1">
                     <Button variant="outline" size="sm" className="w-full">
                       <BookOpen className="w-4 h-4 mr-2" />
                       View

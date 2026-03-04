@@ -52,38 +52,37 @@ const LoginModal = ({ isOpen, onClose }) => {
     setError('');
     setIsLoading(true);
 
-    // TEMPORARY: Bypass authentication - go straight to dashboard
     try {
-      console.log('[LOGIN] Bypassing authentication, redirecting to dashboard');
+      console.log('[LOGIN] Calling backend API for login:', loginData.email);
       
-      // Get role based on email
-      const userInfo = getEmailToRoleMapping(loginData.email);
+      // Call the real backend API
+      const response = await base44.auth.login(loginData.email, loginData.password);
       
-      // Mock user data with appropriate role
-      const userData = {
-        id: 1,
-        email: loginData.email,
-        firstName: userInfo.firstName,
-        lastName: userInfo.lastName,
-        role: userInfo.role,
-        full_name: `${userInfo.firstName} ${userInfo.lastName}`
-      };
-      const token = 'mock-bypass-token';
+      console.log('[LOGIN] Backend response:', response);
       
-      login(userData, token);
-      
-      // Small delay for smooth transition
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Redirect based on role
-      const redirectPath = getRoleBasedRedirect(userData.role);
-      console.log('[LOGIN] Redirecting to:', redirectPath, 'for role:', userData.role);
-      window.location.href = redirectPath;
-      
-      onClose();
+      if (response.success && response.data) {
+        const { user, token } = response.data;
+        
+        // Store in AuthContext
+        login(user, token);
+        
+        console.log('[LOGIN] Login successful, user:', user.email, 'role:', user.role);
+        
+        // Small delay for smooth transition
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Redirect based on role
+        const redirectPath = getRoleBasedRedirect(user.role);
+        console.log('[LOGIN] Redirecting to:', redirectPath);
+        window.location.href = redirectPath;
+        
+        onClose();
+      } else {
+        throw new Error(response.message || 'Login failed');
+      }
     } catch (err) {
-      console.error('[LOGIN] Redirect error:', err);
-      setError('Login failed. Please try again.');
+      console.error('[LOGIN] Error:', err);
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }

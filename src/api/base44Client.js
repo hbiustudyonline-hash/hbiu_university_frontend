@@ -3,10 +3,10 @@ import coursesData from '@/data/courses.json';
 
 const API_BASE_URL = import.meta.env.PROD 
   ? 'https://hbiuuniversitybackendnode-production.up.railway.app/api'
-  : 'http://localhost:5001/api';
+  : 'http://localhost:5000/api';
 
-// TEMPORARY: Enable mock mode to bypass backend authentication
-const MOCK_MODE = true;
+// TEMPORARY: Disable mock mode to use real backend authentication
+const MOCK_MODE = false;
 
 // TEMPORARY: Don't clear bypass tokens on app load (allow mock-bypass-token)
 (() => {
@@ -769,6 +769,67 @@ export const base44 = {
           method: 'DELETE',
         });
       }
+    },
+    
+    User: {
+      list: async (params = {}) => {
+        // Always fetch from backend API for real user data
+        try {
+          const queryParams = new URLSearchParams(params).toString();
+          const url = `/admin/users${queryParams ? '?' + queryParams : ''}`;
+          const response = await apiRequest(url);
+          // API response structure: { success, message, data: { users, pagination } }
+          return response.data?.users || response.users || [];
+        } catch (error) {
+          console.error('[User.list] Error fetching users:', error);
+          return [];
+        }
+      },
+      get: async (id) => {
+        try {
+          const response = await apiRequest(`/users/${id}`);
+          return response.user;
+        } catch (error) {
+          console.error(`[User.get] Error fetching user ${id}:`, error);
+          throw error;
+        }
+      },
+      update: async (id, data) => {
+        try {
+          const response = await apiRequest(`/admin/users/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+          });
+          return response.user;
+        } catch (error) {
+          console.error(`[User.update] Error updating user ${id}:`, error);
+          throw error;
+        }
+      },
+      updateStatus: async (id, status) => {
+        try {
+          const response = await apiRequest(`/admin/users/${id}/status`, {
+            method: 'PUT',
+            body: JSON.stringify({ status }),
+          });
+          return response.user;
+        } catch (error) {
+          console.error(`[User.updateStatus] Error updating user status:`, error);
+          throw error;
+        }
+      },
+      updateRole: async (id, role) => {
+        try {
+          const response = await apiRequest(`/admin/users/${id}/role`, {
+            method: 'PUT',
+            body: JSON.stringify({ role }),
+          });
+          return response.user;
+        } catch (error) {
+          console.error(`[User.updateRole] Error updating user role:`, error);
+          throw error;
+        }
+      }
     }
   },
   
@@ -781,5 +842,8 @@ export const base44 = {
   },
   get AIInstructor() {
     return this.entities.AIInstructor;
+  },
+  get User() {
+    return this.entities.User;
   }
 };

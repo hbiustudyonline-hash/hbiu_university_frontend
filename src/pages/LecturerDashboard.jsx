@@ -40,50 +40,112 @@ export default function LecturerDashboard() {
 
   // Admin sees ALL courses, lecturers see only their own
   // This query now fetches all courses if the user is loaded.
-  const { data: coursesFetchedRaw = [] } = useQuery({
+  const { data: coursesFetchedRaw = [], isLoading: coursesLoading, error: coursesError } = useQuery({
     queryKey: ['all-courses-for-dashboard'], // Generic key as this fetches all courses regardless of user role
-    queryFn: () => {
+    queryFn: async () => {
       if (!user) return []; // Only fetch once user data is available
       console.log('🔵 LecturerDashboard - Fetching all courses...');
-      return base44.entities.Course.list(); // Fetch ALL courses initially
+      const response = await base44.entities.Course.list(); // Fetch ALL courses initially
+      // Handle different response formats
+      const courses = response?.data?.courses || response?.courses || response || [];
+      return Array.isArray(courses) ? courses : [];
     },
     enabled: !!user, // Enable query only when user object is not null
   });
 
+  // Ensure coursesFetchedRaw is always an array
+  const coursesArray = Array.isArray(coursesFetchedRaw) ? coursesFetchedRaw : [];
+
   // Filter courses based on user role: admins see all, lecturers see only their own
   const displayCourses = user?.role === 'admin'
-    ? coursesFetchedRaw // Admins see all courses
-    : coursesFetchedRaw.filter(c => 
-        c.instructor === user?.email || // Their courses
-        !c.instructor || // Courses without instructor (legacy)
-        c.instructor === 'john.smith@hbiu.edu' // Default instructor courses
+    ? coursesArray // Admins see all courses
+    : coursesArray.filter(c => 
+        c.instructor === user?.email || // Legacy field
+        c.lecturer?.email === user?.email || // Current API format
+        c.lecturerId === user?.id || // By ID
+        !c.instructor // Courses without instructor (show all for now)
       );
 
   const { data: allAssignments = [] } = useQuery({
     queryKey: ['all-assignments'],
-    queryFn: () => base44.entities.Assignment.list(),
+    queryFn: async () => {
+      try {
+        const response = await base44.entities.Assignment.list();
+        const assignments = response?.data?.assignments || response?.assignments || response || [];
+        return Array.isArray(assignments) ? assignments : [];
+      } catch (error) {
+        console.error('Error fetching assignments:', error);
+        return [];
+      }
+    },
   });
 
   const { data: allSubmissions = [] } = useQuery({
     queryKey: ['all-submissions'],
-    queryFn: () => base44.entities.Submission.list('-submitted_at'),
+    queryFn: async () => {
+      try {
+        const response = await base44.entities.Submission.list('-submitted_at');
+        const submissions = response?.data?.submissions || response?.submissions || response || [];
+        return Array.isArray(submissions) ? submissions : [];
+      } catch (error) {
+        console.error('Error fetching submissions:', error);
+        return [];
+      }
+    },
   });
 
   const { data: allEnrollments = [] } = useQuery({
     queryKey: ['all-enrollments'],
-    queryFn: () => base44.entities.Enrollment.list(),
+    queryFn: async () => {
+      try {
+        const response = await base44.entities.Enrollment.list();
+        const enrollments = response?.data?.enrollments || response?.enrollments || response || [];
+        return Array.isArray(enrollments) ? enrollments : [];
+      } catch (error) {
+        console.error('Error fetching enrollments:', error);
+        return [];
+      }
+    },
   });
 
   // These derived states now use `displayCourses` instead of the raw `courses` data
   const myCourseIds = displayCourses.map(c => c.id);
-  const myAssignments = allAssignments.filter(a => myCourseIds.includes(a.course_id));
+  const myAssignments = allAssignments.filter(a => myCourseIds.includes(a.courseId || a.course_id));
   const mySubmissions = allSubmissions.filter(s =>
-    myAssignments.some(a => a.id === s.assignment_id)
+    myAssignments.some(a => a.id === (s.assignmentId || s.assignment_id))
   );
-  const myEnrollments = allEnrollments.filter(e => myCourseIds.includes(e.course_id));
+  const myEnrollments = allEnrollments.filter(e => myCourseIds.includes(e.courseId || e.course_id));
 
   const pendingGrading = mySubmissions.filter(s => !s.score && s.status === 'submitted').length;
   const totalStudents = myEnrollments.filter(e => e.status === 'active').length;
+
+  // Show error state if courses failed to load
+  if (coursesError) {
+    return (
+      <Layout currentPageName="LecturerDashboard">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Error loading dashboard</p>
+            <p className="text-gray-600">{coursesError.message}</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show loading state while data is being fetched
+  if (coursesLoading || !user) {
+    return (
+      <Layout currentPageName="LecturerDashboard">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout currentPageName="LecturerDashboard">

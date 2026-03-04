@@ -190,7 +190,7 @@ export default function Layout({ children, currentPageName }) {
   if (isInstructor) {
     navigationItems.push({
       title: "Lecturer Dashboard",
-      url: createPageUrl("LecturerDashboard"),
+      url: "/lecturer-dashboard",
       icon: Presentation,
     });
     navigationItems.push({
@@ -200,12 +200,12 @@ export default function Layout({ children, currentPageName }) {
     });
     navigationItems.push({
       title: "Admin Dashboard",
-      url: createPageUrl("AdminDashboard"),
+      url: "/admin-dashboard",
       icon: Shield,
     });
     navigationItems.push({
       title: "Admin Office",
-      url: createPageUrl("VirtualAdminOffice"),
+      url: "/VirtualAdminOffice",
       icon: Building2,
     });
     navigationItems.push({

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Logout & Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 100px auto;
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        .status {
+            font-size: 18px;
+            margin: 20px 0;
+        }
+        .success {
+            color: #4ade80;
+        }
+        button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Clearing Session...</h1>
+        <div id="status" class="status">Please wait...</div>
+        <div id="action"></div>
+    </div>
+    <script>
+        async function clearAndLogin() {
+            const statusEl = document.getElementById('status');
+            const actionEl = document.getElementById('action');
+            
+            // Step 1: Clear all storage
+            statusEl.innerHTML = '🗑️ Clearing cached data...';
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Clear all cookies
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            await new Promise(r => setTimeout(r, 1000));
+            
+            // Step 2: Try auto-login
+            statusEl.innerHTML = '🔐 Logging in as admin...';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'admin@hbiu.edu',
+                        password: 'password123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.token && data.user) {
+                    // Save to localStorage
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    localStorage.setItem('userData', JSON.stringify(data.user));
+                    
+                    statusEl.innerHTML = '<span class="success">✅ Login successful!</span><br><br>Email: ' + data.user.email + '<br>Role: ' + data.user.role;
+                    
+                    actionEl.innerHTML = '<button onclick="goToDashboard()">Go to Admin Dashboard</button>';
+                } else {
+                    statusEl.innerHTML = '❌ Login failed: ' + (data.message || 'Unknown error');
+                    actionEl.innerHTML = '<button onclick="window.location.href=\'/\'">Go to Home Page</button>';
+                }
+            } catch (error) {
+                statusEl.innerHTML = '❌ Error: ' + error.message;
+                actionEl.innerHTML = '<button onclick="window.location.href=\'/\'">Go to Home Page</button>';
+            }
+        }
+        
+        function goToDashboard() {
+            window.location.href = '/admin-dashboard';
+        }
+        
+        // Auto-run on page load
+        clearAndLogin();
+    </script>
+</body>
+</html>
