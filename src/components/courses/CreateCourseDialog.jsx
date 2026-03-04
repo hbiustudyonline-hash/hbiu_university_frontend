@@ -57,20 +57,11 @@ export default function CreateCourseDialog({ open, onClose, onSubmit, isLoading,
     }));
   }, []);
 
-  // Combine colleges from database and programs catalog (use programs as primary source)
+  // ALWAYS show all colleges from Program Catalog (37+ colleges)
   const combinedColleges = useMemo(() => {
-    // If colleges from DB exist, merge them, otherwise use allCollegesFromPrograms
-    if (colleges && colleges.length > 0) {
-      // Get college names from DB
-      const dbCollegeNames = new Set(Array.isArray(colleges) ? colleges.map(c => c.name) : []);
-      // Get colleges only in programs but not in DB
-      const additionalColleges = allCollegesFromPrograms.filter(c => !dbCollegeNames.has(c.name));
-      // Combine and sort
-      const merged = [...(Array.isArray(colleges) ? colleges : []), ...additionalColleges];
-      return merged.sort((a, b) => a.name.localeCompare(b.name));
-    }
+    // Always use allCollegesFromPrograms as the primary source
     return allCollegesFromPrograms;
-  }, [colleges, allCollegesFromPrograms]);
+  }, [allCollegesFromPrograms]);
 
   // Filter programs based on search query
   const filteredPrograms = useMemo(() => {
@@ -86,11 +77,12 @@ export default function CreateCourseDialog({ open, onClose, onSubmit, isLoading,
   // Debug: Log colleges when dialog opens
   React.useEffect(() => {
     if (open) {
-      console.log('CreateCourseDialog opened - DB Colleges:', colleges);
-      console.log('CreateCourseDialog - Combined Colleges:', combinedColleges);
-      console.log('Colleges count:', combinedColleges?.length || 0);
+      console.log('✅ CreateCourseDialog opened');
+      console.log('📊 All Colleges:', combinedColleges);
+      console.log('📊 Colleges count:', combinedColleges?.length || 0);
+      console.log('📚 Available degree programs:', availableDegreePrograms.length);
     }
-  }, [open, colleges, combinedColleges]);
+  }, [open, combinedColleges, availableDegreePrograms]);
 
   // Close dropdown when clicking outside
   React.useEffect(() => {

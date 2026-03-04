@@ -85,12 +85,29 @@ export default function CourseDetail() {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  const { data: course, isLoading } = useQuery({
+  const { data: course, isLoading, error } = useQuery({
     queryKey: ['course', courseId],
     queryFn: async () => {
-      const courses = await base44.entities.Course.list();
-      // Convert both IDs to strings for comparison to handle mixed types
-      return courses.find(c => String(c.id) === String(courseId));
+      if (!courseId) return null;
+      console.log('🔍 Fetching course with ID:', courseId);
+      try {
+        // Try to get course by ID directly first
+        const courseData = await base44.entities.Course.get(courseId);
+        console.log('✅ Course found:', courseData);
+        return courseData;
+      } catch (err) {
+        console.error('❌ Error fetching course:', err.message);
+        // Fallback: try to find in list
+        const courses = await base44.entities.Course.list();
+        console.log('📋 All courses:', courses.length);
+        const found = courses.find(c => String(c.id) === String(courseId));
+        if (found) {
+          console.log('✅ Course found in list:', found);
+        } else {
+          console.log('❌ Course not found in list. Available IDs:', courses.map(c => c.id));
+        }
+        return found || null;
+      }
     },
     enabled: !!courseId,
   });
@@ -125,7 +142,9 @@ export default function CourseDetail() {
       <div className="min-h-screen p-8 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Course not found</h2>
-          <p className="text-gray-500 mb-4">The course you&apos;re looking for doesn&apos;t exist.</p>
+          <p className="text-gray-500 mb-4">The course you&apos;re looking for doesn&apos;t exist or hasn&apos;t been published yet.</p>
+          <p className="text-sm text-gray-400 mb-4">Course ID: {courseId}</p>
+          {error && <p className="text-sm text-red-500 mb-4">Error: {error.message}</p>}
           <Link to={createPageUrl("Courses")}>
             <Button>Back to Courses</Button>
           </Link>
