@@ -78,7 +78,7 @@ export default function Pages() {
         <Route 
           path="/student-dashboard" 
           element={
-            <ProtectedRoute allowedRoles={['student', 'admin']}>
+            <ProtectedRoute allowedRoles={['student']}>
               <Dashboard />
             </ProtectedRoute>
           } 
